@@ -54,11 +54,27 @@ Design rationale and platform limits: [`docs/design.md`](docs/design.md).
 
 ## Requirements
 
-- macOS with [CodexBar](https://github.com/steipete/CodexBar) and its `codexbar` CLI (tested with 0.84.0).
-- Somewhere to host one small file over HTTPS behind a secret header: Bunny, Cloudflare (free tier), an S3-compatible store with a CDN, or your own web server. Options in [`hosting/README.md`](hosting/README.md).
-- The [Connect IQ SDK](https://developer.garmin.com/connect-iq/sdk/) (tested with 9.3.0) and a developer key.
-- A Garmin watch paired with a phone running Garmin Connect.
-- For USB installs: `brew install libmtp`.
+### To use it
+
+| What | Why | Tested with |
+|---|---|---|
+| A Mac with macOS and the Xcode Command Line Tools (`xcode-select --install`) | Runs the publisher with the system Python `/usr/bin/python3` (3.9, standard library only), `launchd`, the Keychain, `sftp` and `curl`. No Homebrew Python needed. | macOS 27, Python 3.9.6 |
+| [CodexBar](https://github.com/steipete/CodexBar) with its `codexbar` CLI, signed in to the AI providers you want to see | The source of every quota figure. AI Sphere shows only what CodexBar reports. | 0.84.0 |
+| One place to host a small file over **HTTPS** that can **require a secret header** | The watch downloads the JSON from there. Bunny, Cloudflare (free tier, no domain needed), an S3-compatible store behind a CDN, or your own web server. | See [`hosting/README.md`](hosting/README.md) |
+| The [Connect IQ SDK](https://developer.garmin.com/connect-iq/sdk/) via the SDK Manager, with the **Epix Pro (Gen 2) 51 mm** device downloaded | Compiles the watch face. | SDK 9.3.0 |
+| A Java runtime (JDK/JRE 8 or later) | The SDK's compiler (`monkeyc`) and simulator need it. | OpenJDK |
+| A Connect IQ developer key | Signs the build; generated once with `openssl` (included in macOS), see [`garmin/README.md`](garmin/README.md#developer-key-and-app-id). | — |
+| A compatible Garmin watch paired with a phone running **Garmin Connect**, with Bluetooth and internet on the phone | The watch has no internet of its own: it downloads the JSON through the phone in the background. | Epix Pro (Gen 2) 51 mm with an iPhone (Android untested) |
+| A USB cable and `brew install libmtp` | Installs the build on the watch (it is not on the Connect IQ Store). | libmtp 1.1.23 |
+
+### Optional
+
+| What | For |
+|---|---|
+| [Node.js](https://nodejs.org) 18 or later | The HelmCode plugin and Cloudflare Worker tests. |
+| [pnpm](https://pnpm.io) | Running Wrangler (`pnpm dlx wrangler`) to deploy the Cloudflare Worker. |
+| [Docker](https://www.docker.com) | `hosting/test/integration.sh`, which tests every upload target against local servers. |
+| An SSH key, FTP account or cloud credentials | Only for the hosting option you choose; stored in the Keychain, never in files. |
 
 ## Setup
 
