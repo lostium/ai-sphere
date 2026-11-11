@@ -89,6 +89,9 @@ def main():
         check(data == body, "body is the second upload")
         tmp_status, *_ = get(args.read_url + ".tmp", key)
         check(tmp_status in (403, 404), f"temporary file not served ({tmp_status})")
+        head, _, name = args.read_url.rpartition("/")
+        upper_status, *_ = get(f"{head}/{name.upper()}")
+        check(upper_status != 200, f"upper-case path without X-Key not served ({upper_status})")
 
     return 1 if failures else 0
 

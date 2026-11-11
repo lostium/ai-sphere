@@ -18,6 +18,7 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import fcntl
+import math
 import json
 import logging
 import logging.handlers
@@ -32,6 +33,9 @@ from typing import Any, Dict, List, Optional
 import targets  # sibling module: upload targets
 
 SCHEMA_VERSION = 1
+
+# Provider ids published as `p[].id`: CodexBar's own ids look like "codex" or "helmcode-credits".
+PROVIDER_ID = re.compile(r"[a-z0-9][a-z0-9._-]{0,31}")
 
 CONFIG_DIR = os.path.expanduser("~/.config/ai-sphere")
 BUNNY_CONFIG = os.path.join(CONFIG_DIR, "bunny.json")      # older, Bunny-only config (still read)
@@ -142,9 +146,12 @@ def window_label(title: Optional[str], minutes: Optional[int], fallback_text: Op
                  lang: str = "en") -> str:
     group = group_label(title)
     dur = duration_label(minutes, lang)
-    if not group and not dur and fallback_text:
-        # e.g. HelmCode: title "Model quota", description "glm5.3-flash · 2,000 / 2,000 tokens"
-        group = group_label(fallback_text.split("·")[0])
+    if not group and not dur and isinstance(fallback_text, str):
+        # e.g. HelmCode: title "Model quota", description "glm5.3-flash · 2,000 / 2,000 tokens".
+        # Only a model-like token is used (letters, digits, . - _), never free text such as an e-mail.
+        token = fallback_text.split("·")[0].strip()
+        if re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,39}", token):
+            group = group_label(token)
     label = " ".join(part for part in (group, dur) if part)
     return label[:10] or "?"
 
@@ -154,7 +161,7 @@ def clamp_percent(value: Any) -> Optional[int]:
         number = float(value)
     except (TypeError, ValueError):
         return None
-    if number != number:  # NaN
+    if not math.isfinite(number):  # NaN, inf
         return None
     return int(max(0, min(100, int(number + 0.5))))
 
@@ -193,6 +200,13 @@ def pace_block(raw: Any) -> Optional[Dict[str, Any]]:
     return block
 
 
+def window_minutes(value: Any) -> Optional[int]:
+    """windowMinutes as a sane positive integer (up to a year), or None."""
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
+        return None
+    return int(value) if 0 < value <= 527040 else None
+
+
 def _window(raw: Any, label: str, pace: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
     if not isinstance(raw, dict):
         return None
@@ -203,24 +217,28 @@ def _window(raw: Any, label: str, pace: Optional[Dict[str, Any]]) -> Optional[Di
     reset = iso_utc(raw.get("resetsAt"))
     if reset:
         out["r"] = reset
-    minutes = raw.get("windowMinutes")
-    if isinstance(minutes, (int, float)) and minutes > 0:
-        out["m"] = int(minutes)
+    minutes = window_minutes(raw.get("windowMinutes"))
+    if minutes:
+        out["m"] = minutes
     if pace:
         out["pc"] = pace
     return out
 
 
+def _dict(value: Any) -> Dict[str, Any]:
+    return value if isinstance(value, dict) else {}
+
+
 def _signature(raw: Dict[str, Any]) -> tuple:
-    return (clamp_percent(raw.get("usedPercent")), iso_utc(raw.get("resetsAt")), raw.get("windowMinutes"))
+    return (clamp_percent(raw.get("usedPercent")), iso_utc(raw.get("resetsAt")), window_minutes(raw.get("windowMinutes")))
 
 
 def provider_windows(entry: Dict[str, Any], config: Dict[str, Any]) -> List[Dict[str, Any]]:
     provider_id = str(entry.get("provider", ""))
-    usage = entry.get("usage") or {}
-    labels = entry.get("rateWindowLabels") or {}
-    paces = entry.get("pace") or {}
-    overrides = config.get("labels") or {}
+    usage = _dict(entry.get("usage"))
+    labels = _dict(entry.get("rateWindowLabels"))
+    paces = _dict(entry.get("pace"))
+    overrides = _dict(config.get("labels"))
     lang = str(config.get("labelLanguage") or "en")
 
     extras = [x for x in (usage.get("extraRateWindows") or []) if isinstance(x, dict) and isinstance(x.get("window"), dict)]
@@ -235,7 +253,7 @@ def provider_windows(entry: Dict[str, Any], config: Dict[str, Any]) -> List[Dict
         if _signature(raw) in extra_signatures:
             continue
         label = overrides.get(f"{provider_id}/{key}") or window_label(
-            labels.get(key), raw.get("windowMinutes"), raw.get("resetDescription"), lang)
+            labels.get(key), window_minutes(raw.get("windowMinutes")), raw.get("resetDescription"), lang)
         window = _window(raw, label, pace_block(paces.get(key)))
         if window:
             windows.append(window)
@@ -244,7 +262,7 @@ def provider_windows(entry: Dict[str, Any], config: Dict[str, Any]) -> List[Dict
         raw = extra["window"]
         window_id = str(extra.get("id", ""))
         label = overrides.get(f"{provider_id}/{window_id}") or window_label(
-            extra.get("title"), raw.get("windowMinutes"), raw.get("resetDescription"), lang)
+            extra.get("title"), window_minutes(raw.get("windowMinutes")), raw.get("resetDescription"), lang)
         window = _window(raw, label, pace_block(paces.get(window_id)))
         if window:
             windows.append(window)
@@ -298,11 +316,18 @@ def normalise(raw: Any, config: Dict[str, Any], previous: Optional[Dict[str, Any
         if not isinstance(entry, dict) or not entry.get("provider"):
             continue
         provider_id = str(entry["provider"])
+        if not PROVIDER_ID.fullmatch(provider_id):
+            log.warning("skipping a provider with an unexpected id (%d characters)", len(provider_id))
+            continue
         if provider_id in excluded or provider_id in handled:
             continue
         handled.add(provider_id)
 
-        windows = [] if provider_failed(entry) else provider_windows(entry, config)
+        try:
+            windows = [] if provider_failed(entry) else provider_windows(entry, config)
+        except Exception as exc:  # noqa: BLE001 - one odd provider must not stop the others
+            log.warning("provider %s: unexpected data (%s); treating it as failed", provider_id, type(exc).__name__)
+            windows = []
         if windows:
             providers.append({"id": provider_id, "n": display_name(provider_id), "w": windows, "_seen": now_epoch})
             continue
@@ -387,16 +412,25 @@ def jwt_expiry(value: str) -> Optional[int]:
         return None
     part = match.group(1) + "=" * (-len(match.group(1)) % 4)
     try:
-        exp = json.loads(base64.urlsafe_b64decode(part)).get("exp")
+        claims = json.loads(base64.urlsafe_b64decode(part))
     except (ValueError, json.JSONDecodeError):
+        return None
+    exp = claims.get("exp") if isinstance(claims, dict) else None
+    if isinstance(exp, float) and not math.isfinite(exp):
         return None
     return int(exp) if isinstance(exp, (int, float)) else None
 
 
-def plugin_environment(config: Dict[str, Any]) -> Dict[str, str]:
-    """Environment for codexbar with our plugins' secrets taken from the Keychain (never from files)."""
-    env = dict(os.environ)
-    for variable, service in (config.get("pluginSecrets") or {}).items():
+def plugin_environment(config: Dict[str, Any], plugin_id: str) -> Dict[str, str]:
+    """Environment for `codexbar plugins fetch <plugin_id>`: only that plugin's secrets, from the Keychain.
+
+    CodexBar reads them as CODEXBAR_PLUGIN_<ID>_<SECRET>; other codexbar calls never get them.
+    """
+    env = {k: v for k, v in os.environ.items() if not k.startswith("CODEXBAR_PLUGIN_")}
+    prefix = "CODEXBAR_PLUGIN_" + re.sub(r"[^A-Z0-9]", "_", plugin_id.upper()) + "_"
+    for variable, service in _dict(config.get("pluginSecrets")).items():
+        if not str(variable).startswith(prefix):
+            continue
         try:
             value = keychain_secret(service)
         except RuntimeError:
@@ -416,7 +450,7 @@ def run_codexbar(config: Dict[str, Any]) -> Any:
     binary = find_codexbar(config)
     timeout = int(config.get("codexbarTimeoutSeconds") or 90)
     started = time.monotonic()
-    env = plugin_environment(config)
+    env = {k: v for k, v in os.environ.items() if not k.startswith("CODEXBAR_PLUGIN_")}
     proc = subprocess.run([binary, "usage", "--format", "json", "--no-color"],
                           capture_output=True, text=True, timeout=timeout, env=env)
     elapsed = time.monotonic() - started
@@ -434,7 +468,7 @@ def run_codexbar(config: Dict[str, Any]) -> Any:
         present = {entry.get("provider") for entry in data if isinstance(entry, dict)}
         for plugin_id in config.get("plugins") or []:
             if plugin_id not in present:
-                entry = fetch_plugin(binary, plugin_id, env, timeout)
+                entry = fetch_plugin(binary, plugin_id, plugin_environment(config, plugin_id), timeout)
                 if entry:
                     data.append(entry)
     return data
@@ -493,7 +527,7 @@ def fetch_plugin(binary: str, plugin_id: str, env: Dict[str, str], timeout: int)
 
 
 def keychain_secret(service: str) -> str:
-    proc = subprocess.run(["security", "find-generic-password", "-s", service, "-w"],
+    proc = subprocess.run(["/usr/bin/security", "find-generic-password", "-s", service, "-w"],
                           capture_output=True, text=True)
     if proc.returncode != 0 or not proc.stdout.strip():
         raise RuntimeError(f"Keychain item '{service}' not found or not readable")

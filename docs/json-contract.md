@@ -46,15 +46,16 @@ A provider with no fresh data also carries `"err":1` and repeats its last known 
 
 ## Rules
 
-- **Nothing personal:** the normaliser copies only the fields in this table (an allow-list). E-mail addresses, organisations, plans, balances, costs and CodexBar's descriptions never leave the Mac. The tests check this.
+- **Nothing personal:** the normaliser copies only the fields in this table (an allow-list). E-mail addresses, organisations, plans, balances and costs never leave the Mac; the tests check this. The only free text that can reach a label is a window title reduced to its first word (6 characters), or, as a last resort, a model-like token (`[A-Za-z0-9._-]`) at the start of `resetDescription`. Provider ids must match `[a-z0-9][a-z0-9._-]{0,31}`; anything else is skipped.
 - **Nothing invented:** if CodexBar does not give a value, the field is omitted. If a provider fails, its last good values are repeated with `err: 1`; zeros are never published. A provider that never had data is left out.
 - **Duplicate windows:** if `primary`, `secondary` or `tertiary` match one of the `extraRateWindows` exactly (usage, reset and length), the standard one is dropped (Antigravity does this).
 - **No fixed 5-hour window is assumed:** every window is collected, because Codex and Claude currently only have weekly ones.
+- **The watch does not trust it either:** it keeps a sanitised copy (at most 8 providers and 3 windows, names and labels cut to 10 characters, percentages clamped, impossible dates dropped) and discards stored data that fails to draw.
 - **Compatibility:** adding optional fields does not change `v`; the watch ignores what it does not know. An incompatible change bumps `v`, and a watch that does not understand it keeps the previous data.
 
 ## How labels are built
 
 1. Length from `windowMinutes`: 300 → `5H`, 1440 → `DAY`, 10080 → `WK`, 28–31 days → `MO`; otherwise `nH` or `nD`. With the setting `"labelLanguage": "es"` the words are `DÍA`, `SEM` and `MES`.
 2. Group from the CodexBar title, after removing length and filler words (`weekly`, `5-hour`, `only`, `models`, `quota`…): `Gemini` → `GEM`, `Claude/GPT` and `Claude and GPT` → `C/G`, `Gemini 4 Argon` → `ARGON`. Anything else: first word in upper case, 6 characters max (`deepseek-v4-flash` → `DEEPSE`).
-3. If there is neither a group nor a length, the first part of `resetDescription` is used (e.g. `glm5.3-flash · …` → `GLM53`).
+3. If there is neither a group nor a length, the first part of `resetDescription` is used, only if it looks like a model name (letters, digits, `.`, `-`, `_`): `glm5.3-flash · …` → `GLM53`; `someone@example.com · …` → nothing.
 4. Any label can be forced in `~/.config/ai-sphere/sync.json` with the key `provider/windowId` (see `mac/README.md`).

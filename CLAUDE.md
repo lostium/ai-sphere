@@ -28,6 +28,7 @@ node mac/tests/test_helmcode_plugin.mjs                # plugin test
 /usr/bin/python3 mac/aisphere_sync.py --dry-run -v     # build the JSON without uploading
 hosting/check.sh                                       # hosting end to end (real URL)
 hosting/test/integration.sh                            # every target against local Docker servers
+garmin/scripts/test.sh                                 # Monkey C unit tests (simulator)
 node hosting/cloudflare/worker/worker.test.mjs         # Cloudflare Worker
 cd garmin && scripts/build.sh                          # build the watch face
 /usr/bin/python3 garmin/scripts/mtp_send.py garmin/bin/AISphere.prg   # install over USB

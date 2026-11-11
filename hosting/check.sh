@@ -10,17 +10,19 @@ REF="$(/usr/bin/python3 "$ROOT/mac/aisphere_sync.py" ${1:+--publish-config "$1"}
 [ -n "$URL" ] || { echo "No publicUrl in the publish config (see hosting/README.md)." >&2; exit 1; }
 case "$REF" in
   env:*) WK="$(printenv "${REF#env:}")" ;;
-  *)     WK="$(security find-generic-password -s "${REF#keychain:}" -w)" ;;
+  *)     WK="$(/usr/bin/security find-generic-password -s "${REF#keychain:}" -w)" ;;
 esac
-case "$URL" in https://*) ;; *) echo "warning: the watch only accepts HTTPS URLs" >&2 ;; esac
+case "$URL" in https://*) ;; *) echo "The watch only accepts https:// URLs; not sending the key to $URL" >&2; exit 1 ;; esac
 TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
+# The key goes to curl in a header file (mode 600), never on its command line where `ps` could see it.
+( umask 077; printf 'X-Key: %s\n' "$WK" > "$TMP/key-header" )
 
 code() { curl -s -o /dev/null -w "%{http_code}" "$@" "$URL"; }
 fail=0
 c=$(code);               printf "no key:     %s (expected 403)\n" "$c"; [ "$c" = 403 ] || fail=1
 c=$(code -H "X-Key: x"); printf "wrong key:  %s (expected 403)\n" "$c"; [ "$c" = 403 ] || fail=1
 
-c=$(curl -s -D "$TMP/h" -o "$TMP/b" -w "%{http_code}" -H "X-Key: $WK" "$URL")
+c=$(curl -s -D "$TMP/h" -o "$TMP/b" -w "%{http_code}" -H @"$TMP/key-header" "$URL")
 printf "right key:  %s (expected 200)\n" "$c"; [ "$c" = 200 ] || fail=1
 grep -i -E '^(content-type|cache-control):' "$TMP/h" | tr -d '\r' | sed 's/^/  /'
 /usr/bin/python3 - "$TMP/b" <<'PY' || fail=1

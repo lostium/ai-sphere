@@ -138,7 +138,7 @@
     "updatedAt": "2026-11-11T10:17:17Z",
     "limit": 0,
     "used": 0,
-    "balance": 2.59,
+    "balance": 0,
     "currencyCode": "EUR"
    },
    "loginMethod": "Example Plan",
@@ -172,7 +172,7 @@
    "tertiary": {
     "windowMinutes": 43200,
     "usedPercent": 0,
-    "resetsAt": "2026-11-26T08:42:20Z"
+    "resetsAt": "2026-11-26T00:00:00Z"
    },
    "updatedAt": "2026-11-11T10:17:15Z",
    "dataConfidence": "estimated"
@@ -268,7 +268,7 @@
     {
      "window": {
       "resetsAt": "2026-12-01T00:00:00Z",
-      "resetDescription": "deepseek-v4-flash · 411,064,771 / 3,000,000,000 tokens",
+      "resetDescription": "deepseek-v4-flash · 1,000 / 10,000 tokens",
       "usedPercent": 13.702159033333333
      },
      "title": "deepseek-v4-flash",
@@ -277,7 +277,7 @@
     {
      "window": {
       "resetsAt": "2026-12-01T00:00:00Z",
-      "resetDescription": "qwen3.8-flash · 45,663,844 / 500,000,000 tokens",
+      "resetDescription": "qwen3.8-flash · 1,000 / 10,000 tokens",
       "usedPercent": 9.132768800000001
      },
      "title": "qwen3.8-flash",
@@ -286,7 +286,7 @@
     {
      "window": {
       "resetsAt": "2026-12-01T00:00:00Z",
-      "resetDescription": "mimo-v2.6-flash · 29,696,455 / 1,000,000,000 tokens",
+      "resetDescription": "mimo-v2.6-flash · 1,000 / 10,000 tokens",
       "usedPercent": 2.9696455
      },
      "title": "mimo-v2.6-flash",
@@ -296,7 +296,7 @@
    "tertiary": null,
    "primary": {
     "usedPercent": 100,
-    "resetDescription": "glm5.3-flash · 2,000,279,752 / 2,000,000,000 tokens",
+    "resetDescription": "glm5.3-flash · 10,000 / 10,000 tokens",
     "resetsAt": "2026-12-01T00:00:00Z"
    },
    "loginMethod": "Dashboard session",

@@ -39,9 +39,13 @@ scan_re "private key" 'BEGIN [A-Z ]*PRIVATE KEY'
 scan_re "Bunny/API key shape" '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}[0-9a-f-]{20,}'
 
 if [ "${1:-}" = "--secrets" ]; then
+  # Each secret goes to grep in a pattern file (mode 600), never on a command line.
+  PAT="$(mktemp)"; chmod 600 "$PAT"; trap 'rm -f "$FILES" "$PAT"' EXIT
   for item in ai-sphere-watch-key ai-sphere-bunny-storage ai-sphere-helmcode-cookie bunny-access-key; do
-    value="$(security find-generic-password -s "$item" -w 2>/dev/null || true)"
-    [ -n "$value" ] && scan "Keychain $item" "$(printf '%s' "$value" | head -c 24)"
+    /usr/bin/security find-generic-password -s "$item" -w 2>/dev/null | head -c 24 > "$PAT" || true
+    [ -s "$PAT" ] || continue
+    out="$(xargs -0 grep -nIF -f "$PAT" -- < "$FILES" 2>/dev/null | cut -d: -f1,2 || true)"
+    if [ -n "$out" ]; then echo "[Keychain $item]"; echo "$out" | sed 's/^/  /'; hits=1; fi
   done
 fi
 

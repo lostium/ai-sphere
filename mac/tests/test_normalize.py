@@ -204,3 +204,59 @@ class LabelLanguage(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class Hardening(unittest.TestCase):
+    """Odd or hostile CodexBar data must not stop the publication or leak free text (security review)."""
+
+    def entry(self, provider="codex", **usage):
+        return {"provider": provider, "usage": usage, "rateWindowLabels": {}}
+
+    def test_infinite_and_odd_values_do_not_abort(self):
+        raw = json.loads('[{"provider": "codex", "usage": {"primary": {"usedPercent": 1e999, "windowMinutes": 1e999}}},'
+                         ' {"provider": "claude", "usage": {"primary": {"usedPercent": 10, "windowMinutes": [1]},'
+                         '  "extraRateWindows": [{"id": "x", "window": {"usedPercent": 5, "windowMinutes": {"a": 1}}}]},'
+                         '  "rateWindowLabels": "not a dict", "pace": ["x"]},'
+                         ' {"provider": "antigravity", "usage": {"primary": {"usedPercent": 20, "windowMinutes": 300}}}]')
+        payload = sync.normalise(raw, dict(sync.DEFAULTS), now=NOW)
+        ids = [p["id"] for p in payload["p"]]
+        self.assertIn("antigravity", ids)
+        self.assertIn("claude", ids)
+        self.assertNotIn("codex", ids)  # infinite usage is not a usable window
+        claude = by_id(payload)["claude"]["w"]
+        self.assertTrue(all("m" not in w for w in claude))
+
+    def test_unexpected_provider_ids_are_skipped(self):
+        raw = [self.entry("john.doe@example.com personal", primary={"usedPercent": 1}),
+               self.entry("x" * 40, primary={"usedPercent": 1}),
+               self.entry("helmcode-credits", primary={"usedPercent": 1})]
+        ids = [p["id"] for p in sync.normalise(raw, dict(sync.DEFAULTS), now=NOW)["p"]]
+        self.assertEqual(ids, ["helmcode-credits"])
+
+    def test_reset_description_free_text_is_not_published(self):
+        self.assertEqual(sync.window_label("Model quota", None, "jdoe@example.com · 1/2"), "?")
+        self.assertEqual(sync.window_label("Model quota", None, "Your plan renews soon · x"), "?")
+        self.assertEqual(sync.window_label("Model quota", None, "glm5.3-flash · 1/2 tokens"), "GLM53")
+
+    def test_jwt_with_odd_body(self):
+        import base64
+        body = base64.urlsafe_b64encode(b'["not", "an", "object"]').decode().rstrip("=")
+        self.assertIsNone(sync.jwt_expiry(f"eyJhbGciOiJIUzI1NiJ9.{body}.c2ln"))
+
+    def test_plugin_secrets_only_reach_their_plugin(self):
+        os.environ["AIS_UNRELATED"] = "keep"
+        os.environ["CODEXBAR_PLUGIN_OTHER_TOKEN"] = "must-not-leak"
+        original = sync.keychain_secret
+        sync.keychain_secret = lambda service: "cookie-for-" + service
+        try:
+            config = dict(sync.DEFAULTS, pluginSecrets={
+                "CODEXBAR_PLUGIN_HELMCODE_CREDITS_SESSION_COOKIE": "helm-item",
+                "CODEXBAR_PLUGIN_OTHER_PLUGIN_TOKEN": "other-item"})
+            env = sync.plugin_environment(config, "helmcode-credits")
+        finally:
+            sync.keychain_secret = original
+            del os.environ["CODEXBAR_PLUGIN_OTHER_TOKEN"]
+        self.assertEqual(env["CODEXBAR_PLUGIN_HELMCODE_CREDITS_SESSION_COOKIE"], "cookie-for-helm-item")
+        self.assertNotIn("CODEXBAR_PLUGIN_OTHER_PLUGIN_TOKEN", env)
+        self.assertNotIn("CODEXBAR_PLUGIN_OTHER_TOKEN", env)
+        self.assertEqual(env["AIS_UNRELATED"], "keep")

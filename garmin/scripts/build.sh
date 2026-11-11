@@ -28,12 +28,18 @@ if [ "$MODE" = "personal" ]; then
   case "$URL" in https://*) ;; *) echo "The watch needs HTTPS; publicUrl is: $URL" >&2; exit 1 ;; esac
   case "$REF" in
     env:*) XKEY="$(printenv "${REF#env:}")" ;;
-    *)     XKEY="$(security find-generic-password -s "${REF#keychain:}" -w)" ;;
+    *)     XKEY="$(/usr/bin/security find-generic-password -s "${REF#keychain:}" -w)" ;;
   esac
 fi
 
+umask 077   # build/ and bin/ hold the URL and key: owner only
 mkdir -p "$HERE/build/resources" "$HERE/bin"
-umask 077
+chmod 700 "$HERE/build" "$HERE/build/resources" "$HERE/bin"
+
+# XML-escape the values so a key with & or < cannot break properties.xml.
+xml() { printf '%s' "$1" | sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g' -e 's/"/\&quot;/g'; }
+URL="$(xml "$URL")"
+XKEY="$(xml "$XKEY")"
 cat > "$HERE/build/resources/properties.xml" <<EOF
 <properties>
     <property id="dataUrl" type="string">$URL</property>

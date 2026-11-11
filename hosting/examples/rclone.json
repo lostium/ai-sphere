@@ -5,7 +5,7 @@
     "type": "command",
     "command": ["/opt/homebrew/bin/rclone", "copyto", "{file}", "myremote:ai-sphere/usage.json",
                 "--header-upload", "Content-Type: application/json",
-                "--header-upload", "Cache-Control: public, max-age=60"],
+                "--header-upload", "Cache-Control: private, max-age=60"],
     "timeoutSeconds": 60
   }
 }

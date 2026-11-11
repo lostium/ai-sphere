@@ -6,3 +6,6 @@ base.resourcePath = resources;build/resources
 
 # Spanish texts; English (resources/strings) is the default for every other language.
 base.lang.spa = resources-spa
+
+# Unit tests: (:test) code is only compiled with `monkeyc -t` (scripts/test.sh).
+base.sourcePath = source;tests

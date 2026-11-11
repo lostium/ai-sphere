@@ -21,6 +21,8 @@ Watch ── GET + X-Key ──▶ Pull zone <random-name>.b-cdn.net ── 403 
 
 The steps below use the Bunny API with your account API key (Account → API). Everything can also be done in the Bunny dashboard. If your account has other zones, only touch the ones you create here.
 
+Commands below pass keys to `curl` through `-H @<(printf …)` (bash or zsh), so they never appear in its command line.
+
 ```sh
 API=$(security find-generic-password -s bunny-access-key -w)   # your account API key, stored once in the Keychain
 ```
@@ -28,7 +30,7 @@ API=$(security find-generic-password -s bunny-access-key -w)   # your account AP
 ### 1. Storage zone
 
 ```sh
-curl -s -X POST https://api.bunny.net/storagezone -H "AccessKey: $API" -H "Content-Type: application/json" \
+curl -s -X POST https://api.bunny.net/storagezone -H @<(printf 'AccessKey: %s\n' "$API") -H "Content-Type: application/json" \
   -d '{"Name":"ais-<random>","Region":"DE","ZoneTier":0}'
 ```
 
@@ -46,14 +48,14 @@ Use a different region if you prefer; the upload host changes accordingly (`stor
 
 ```sh
 NAME="as-$(LC_ALL=C tr -dc 'a-z0-9' </dev/urandom | head -c 32)"
-curl -s -X POST https://api.bunny.net/pullzone -H "AccessKey: $API" -H "Content-Type: application/json" \
+curl -s -X POST https://api.bunny.net/pullzone -H @<(printf 'AccessKey: %s\n' "$API") -H "Content-Type: application/json" \
   -d "{\"Name\":\"$NAME\",\"OriginType\":2,\"StorageZoneId\":<storage zone id>}"
 ```
 
 The CDN host is `$NAME.b-cdn.net`. Keep it out of the repository (it goes in the local config below). Then set the cache to 60 s:
 
 ```sh
-curl -s -X POST https://api.bunny.net/pullzone/<pull zone id> -H "AccessKey: $API" -H "Content-Type: application/json" \
+curl -s -X POST https://api.bunny.net/pullzone/<pull zone id> -H @<(printf 'AccessKey: %s\n' "$API") -H "Content-Type: application/json" \
   -d '{"CacheControlMaxAgeOverride":60,"CacheControlPublicMaxAgeOverride":60}'
 ```
 
@@ -62,7 +64,7 @@ curl -s -X POST https://api.bunny.net/pullzone/<pull zone id> -H "AccessKey: $AP
 Generate the secret and keep it in the Keychain:
 
 ```sh
-security add-generic-password -U -s ai-sphere-watch-key -a ai-sphere -w "$(python3 -c 'import secrets;print(secrets.token_urlsafe(24))')"
+printf 'add-generic-password -U -s ai-sphere-watch-key -a ai-sphere -w %s\n' "$(python3 -c 'import secrets;print(secrets.token_urlsafe(24))')" | security -i
 ```
 
 In the dashboard: Pull zone → Edge Rules → Add rule, named for example "ai-sphere: require X-Key header":
@@ -117,7 +119,7 @@ Manual upload (what the script does):
 
 ```sh
 SP=$(security find-generic-password -s ai-sphere-bunny-storage -w)
-curl -X PUT -H "AccessKey: $SP" -H "Content-Type: application/json" \
+curl -X PUT -H @<(printf 'AccessKey: %s\n' "$SP") -H "Content-Type: application/json" \
      --data-binary @usage.json https://storage.bunnycdn.com/<storage-zone>/usage.json
 ```
 

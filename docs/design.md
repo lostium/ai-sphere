@@ -56,6 +56,8 @@ The watch face follows the watch's language: Spanish if the watch is set to Span
 - Upload and admin credentials live in the macOS Keychain, never in files.
 - Personal builds of the watch face embed the URL and key; `garmin/build/` and `garmin/bin/` are ignored by git.
 - The published JSON contains only quota percentages, reset times and short labels.
+- Nobody in the chain is fully trusted: the publisher skips providers with unexpected ids and survives odd values, upload credentials only travel over HTTPS, secrets never go on a command line, plugin secrets only reach their own plugin, and the watch sanitises what it downloads before storing it.
+- A security review (November 2026) found no critical or high issues; its medium and low findings were fixed with regression tests (`mac/tests/*` `Hardening`, `garmin/tests/`).
 
 ## Why the publisher is Python
 

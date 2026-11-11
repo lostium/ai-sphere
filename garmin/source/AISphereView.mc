@@ -101,7 +101,13 @@ class AISphereView extends WatchUi.WatchFace {
         var now = Time.now().value();
         var cx = dc.getWidth() / 2;
         var cy = dc.getHeight() / 2;
-        var providers = FaceModel.providers(now);
+        var providers = [] as Array<ProviderModel>;
+        try {
+            providers = FaceModel.providers(now);
+        } catch (e) {
+            // Stored data that cannot be drawn is dropped instead of failing on every redraw.
+            QuotaStore.clear();
+        }
         var status = syncStatus(now);
 
         if (dc has :setAntiAlias) {

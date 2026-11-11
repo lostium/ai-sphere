@@ -27,6 +27,7 @@ import hmac
 import io
 import logging
 import os
+import re
 import ssl
 import subprocess
 import tempfile
@@ -39,7 +40,8 @@ from typing import Any, Callable, Dict, List, Optional
 log = logging.getLogger("aisphere")
 
 USER_AGENT = "ai-sphere-sync/1"
-DEFAULT_CACHE_CONTROL = "public, max-age=60"
+# "private": the file is only served with the X-Key, so a shared cache must not reuse the response.
+DEFAULT_CACHE_CONTROL = "private, max-age=60"
 TIMEOUT = 20
 
 SecretResolver = Callable[[str], str]
@@ -56,7 +58,7 @@ class UploadError(RuntimeError):
 # --------------------------------------------------------------------------- secrets
 
 def keychain_secret(service: str) -> str:
-    proc = subprocess.run(["security", "find-generic-password", "-s", service, "-w"],
+    proc = subprocess.run(["/usr/bin/security", "find-generic-password", "-s", service, "-w"],
                           capture_output=True, text=True)
     if proc.returncode != 0 or not proc.stdout.strip():
         raise UploadError(f"Keychain item '{service}' not found or not readable", retry=False)
@@ -73,6 +75,17 @@ def resolve_secret(ref: str) -> str:
     if ref.startswith("keychain:"):
         ref = ref[9:]
     return keychain_secret(ref)
+
+
+LOOPBACK = {"127.0.0.1", "::1", "localhost"}
+
+
+def _require_https(url: str, cfg: Dict[str, Any]) -> None:
+    """Credentials must not travel in clear: https only, except on this machine or with "allowInsecure"."""
+    parts = urllib.parse.urlsplit(url)
+    if parts.scheme == "https" or (parts.scheme == "http" and (parts.hostname in LOOPBACK or cfg.get("allowInsecure"))):
+        return
+    raise UploadError(f"target '{cfg.get('type')}' needs an https:// URL (got {parts.scheme or 'none'}://)", retry=False)
 
 
 def _require(cfg: Dict[str, Any], *keys: str) -> None:
@@ -157,6 +170,7 @@ def s3_request(method: str, cfg: Dict[str, Any], data: bytes, access_key: str, s
 
 def put_s3(data: bytes, cfg: Dict[str, Any], secret: SecretResolver) -> str:
     _require(cfg, "endpoint", "bucket", "accessKeyId", "secretAccessKey")
+    _require_https(cfg["endpoint"], cfg)
     request = s3_request("PUT", cfg, data, secret(cfg["accessKeyId"]), secret(cfg["secretAccessKey"]))
     try:
         with urllib.request.urlopen(request, timeout=TIMEOUT) as response:
@@ -173,6 +187,7 @@ def put_s3(data: bytes, cfg: Dict[str, Any], secret: SecretResolver) -> str:
 
 def put_http(data: bytes, cfg: Dict[str, Any], secret: SecretResolver) -> str:
     _require(cfg, "url")
+    _require_https(cfg["url"], cfg)
     headers = {"Content-Type": "application/json"}
     headers.update(cfg.get("headers") or {})
     if cfg.get("token"):
@@ -241,7 +256,10 @@ def put_ftp(data: bytes, cfg: Dict[str, Any], secret: SecretResolver) -> str:
 
 
 def sftp_command(cfg: Dict[str, Any]) -> List[str]:
-    cmd = ["sftp", "-b", "-", "-q",
+    for field in ("user", "host"):
+        if not re.fullmatch(r"[A-Za-z0-9_][A-Za-z0-9._-]*", str(cfg.get(field) or "")):
+            raise UploadError(f"sftp {field} contains characters that are not allowed", retry=False)
+    cmd = ["/usr/bin/sftp", "-b", "-", "-q",
            "-o", "BatchMode=yes",
            "-o", f"StrictHostKeyChecking={cfg.get('strictHostKeyChecking', 'yes')}",
            "-o", f"ConnectTimeout={TIMEOUT}",
@@ -257,6 +275,10 @@ def sftp_command(cfg: Dict[str, Any]) -> List[str]:
 def put_sftp(data: bytes, cfg: Dict[str, Any], secret: SecretResolver) -> str:
     _require(cfg, "host", "user")
     path = cfg.get("path") or "usage.json"
+    # The path goes into an sftp batch file: refuse anything that could break out of the quotes,
+    # start a new command or act as a wildcard.
+    if any(c in path for c in '"\\\n\r*?[]') or path.startswith(("-", "!")):
+        raise UploadError("sftp path contains characters that are not allowed", retry=False)
     with tempfile.NamedTemporaryFile("wb", suffix=".json", delete=False) as fh:
         fh.write(data)
         local = fh.name

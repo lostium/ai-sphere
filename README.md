@@ -99,6 +99,7 @@ hosting/check.sh                                       # is the file served, pro
 /usr/bin/python3 -m unittest discover -s mac/tests     # publisher tests
 node mac/tests/test_helmcode_plugin.mjs                # HelmCode plugin test
 hosting/test/integration.sh                            # every upload target against local servers (Docker)
+garmin/scripts/test.sh                                 # watch face unit tests (simulator)
 tools/check-private.sh                                 # before pushing: no personal data or secrets in the repo
 ```
 

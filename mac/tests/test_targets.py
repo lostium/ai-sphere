@@ -161,7 +161,7 @@ class S3Signing(unittest.TestCase):
         self.assertTrue(auth.startswith("AWS4-HMAC-SHA256 Credential=AK/20261111/auto/s3/aws4_request, "))
         self.assertIn("SignedHeaders=cache-control;content-type;host;x-amz-content-sha256;x-amz-date,", auth)
         self.assertEqual(req.get_header("Content-type"), "application/json")
-        self.assertEqual(req.get_header("Cache-control"), "public, max-age=60")
+        self.assertEqual(req.get_header("Cache-control"), "private, max-age=60")
         self.assertEqual(req.get_header("X-amz-date"), "20261111T120000Z")
 
     def test_virtual_hosted(self):
@@ -240,3 +240,33 @@ class HttpTarget(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class Hardening(unittest.TestCase):
+    """Security review fixes for the upload targets."""
+
+    def test_credentials_require_https(self):
+        for target in ({"type": "http", "url": "http://dav.example.com/usage.json", "token": "tok"},
+                       {"type": "s3", "endpoint": "http://s3.example.com", "bucket": "b",
+                        "accessKeyId": "ak", "secretAccessKey": "sk"}):
+            with self.assertRaises(targets.UploadError) as ctx:
+                targets.publish(DATA, target, retries=0, secret=fake_secret)
+            self.assertIn("https", str(ctx.exception))
+            self.assertFalse(ctx.exception.retry)
+
+    def test_loopback_and_explicit_opt_in_allowed(self):
+        targets._require_https("http://127.0.0.1:8080/x", {})
+        targets._require_https("http://localhost/x", {})
+        targets._require_https("http://nas.lan/x", {"allowInsecure": True})
+        targets._require_https("https://dav.example.com/x", {})
+
+    def test_sftp_rejects_injection_in_path_and_host(self):
+        for path in ('a"\n!touch /tmp/pwned\n"', "a*", "dir/[x].json", "-x", "a\\b"):
+            with self.assertRaises(targets.UploadError, msg=path):
+                targets.publish(DATA, {"type": "sftp", "host": "h", "user": "u", "path": path}, retries=0)
+        for host in ("-oProxyCommand=x", "h;ls", "a b"):
+            with self.assertRaises(targets.UploadError, msg=host):
+                targets.sftp_command({"host": host, "user": "u"})
+
+    def test_default_cache_is_private(self):
+        self.assertTrue(targets.DEFAULT_CACHE_CONTROL.startswith("private"))

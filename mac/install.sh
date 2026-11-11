@@ -27,6 +27,11 @@ fi
 PATH="/opt/homebrew/bin:/usr/local/bin:$PATH" command -v codexbar >/dev/null 2>&1 \
   || { echo "codexbar CLI not found (install CodexBar and its CLI)." >&2; exit 1; }
 
+# The paths go into the plist through sed and XML: refuse characters that would break either.
+case "$SCRIPT$LOGDIR" in
+  *'|'*|*'&'*|*'<'*|*'>'*) echo "The project path contains | & < or >; move it to a plain path." >&2; exit 1 ;;
+esac
+
 mkdir -p "$AGENTS" "$LOGDIR"
 chmod +x "$SCRIPT"
 

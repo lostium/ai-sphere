@@ -14,7 +14,7 @@ The fix is a CodexBar user plugin, [`helmcode-credits.js`](helmcode-credits.js),
 Without the cookie it returns 401. Response (abridged):
 
 ```json
-{"enabled":true,"tier":"inference",
+{"enabled":true,"tier":"example-tier",
  "periodStart":"2026-10-31T00:00:00Z","periodEnd":"2026-12-01T00:00:00Z",
  "allowanceCredits":5000,"usedCredits":0,"remainingCredits":5000,
  "packCredits":0,"packExpiresAt":null,"frontierPaused":false,"frozen":false,

@@ -11,10 +11,10 @@ Whatever you choose, the URL the watch downloads must:
 | **HTTPS with a valid certificate** | Connect IQ refuses plain HTTP (the watch shows "needs HTTPS"). |
 | **403 unless the `X-Key` header equals your secret** | The file is not public. A long random path or host name helps too. |
 | **`Content-Type: application/json`** | Connect IQ only parses JSON responses with this type (otherwise "not JSON"). |
-| **A short cache (≤ 60 s)** | The Mac uploads every 10 min; a long cache would show old data. |
+| **A short, private cache (≤ 60 s)** | The Mac uploads every 10 min; a long cache would show old data. Use `Cache-Control: private` unless the `X-Key` check runs *before* the cache (Bunny edge rules, Cloudflare WAF, CloudFront functions): otherwise a shared cache in front could hand the keyed response to anyone. |
 | **Atomic replacement** | The watch must never read half a file. All targets upload to a temporary name and rename, or use a store that replaces objects atomically. |
 
-`hosting/check.sh` tests the first four against your real URL.
+`hosting/check.sh` tests the first four against your real URL. Run it after every change to the hosting: a misconfigured server (for example Apache ignoring `.htaccess`) fails open, and only this check shows it.
 
 ## Options
 
@@ -24,7 +24,7 @@ Whatever you choose, the URL the watch downloads must:
 | [Cloudflare Worker + KV](cloudflare/README.md#option-a-worker--kv-recommended) | `http` | The Worker | Low | Free tier | Worker code tested with Node; not deployed |
 | [Cloudflare R2 + custom domain](cloudflare/README.md#option-b-r2--custom-domain--waf-rule) | `s3` | WAF custom rule | Medium (needs a domain on Cloudflare) | Free tier | S3 upload tested; R2 and WAF not |
 | [S3-compatible + CDN](s3.md) (AWS S3 + CloudFront, Backblaze B2, Wasabi, DigitalOcean Spaces, Scaleway, Hetzner, MinIO…) | `s3` | CDN function/rule in front | Medium–high | Low | S3 upload tested against an S3-compatible server |
-| [Your web server over SFTP](web-server/README.md) | `sftp` | nginx or Apache | Low if you have a server | Whatever you pay | **End to end** (SFTP → nginx) |
+| [Your web server over SFTP](web-server/README.md) | `sftp` | nginx or Apache | Low if you have a server | Whatever you pay | **End to end** (SFTP → nginx) `path` may not contain quotes, backslashes, line breaks or wildcards. |
 | [Shared hosting over FTPS](web-server/README.md) | `ftp` | `.htaccess` | Low | Whatever you pay | **End to end** (FTPS → Apache) |
 | [WebDAV](web-server/README.md#webdav) (Nextcloud, Apache, nginx) | `webdav` | The web server | Low | — | Upload end to end |
 | Anything [rclone](https://rclone.org) supports | `command` | Whatever serves it | Varies | Varies | `command` target tested with `cp` |
@@ -58,10 +58,10 @@ Recommendation: keep Bunny if you already have it. Without an account anywhere, 
 security add-generic-password -U -s ai-sphere-ftp-password -a ai-sphere -w     # prompts for the value
 ```
 
-Create the `X-Key` once (all options use it):
+Create the `X-Key` once (all options use it). Generated secrets are fed to `security -i` on standard input, so they never appear in a command line that `ps` could show:
 
 ```sh
-security add-generic-password -U -s ai-sphere-watch-key -a ai-sphere -w "$(python3 -c 'import secrets;print(secrets.token_urlsafe(24))')"
+printf 'add-generic-password -U -s ai-sphere-watch-key -a ai-sphere -w %s\n' "$(python3 -c 'import secrets;print(secrets.token_urlsafe(24))')" | security -i
 ```
 
 If `publish.json` does not exist, the publisher reads the older Bunny-only `~/.config/ai-sphere/bunny.json`, so existing installs keep working.
@@ -71,8 +71,8 @@ If `publish.json` does not exist, the publisher reads the older Bunny-only `~/.c
 | `type` | Fields | Notes |
 |---|---|---|
 | `bunny` | `storageZone`, `storageHost` (default `storage.bunnycdn.com`), `path` (default `usage.json`), `password` (secret, default `ai-sphere-bunny-storage`) | HTTP `PUT` with the zone password. |
-| `s3` | `endpoint`, `region` (`auto` for R2), `bucket`, `key`, `accessKeyId` (secret), `secretAccessKey` (secret), `virtualHosted` (default `false`), `cacheControl` (default `public, max-age=60`) | AWS Signature V4 `PUT`; stores `Content-Type: application/json` and the cache header with the object. Use an access key limited to this bucket. |
-| `http` / `webdav` | `url`, `token` (secret, sent as `Bearer`) **or** `username` + `password` (secret, Basic), `headers` (extra, not secret), `webdavMove` | Plain `PUT`. With `webdavMove: true`, uploads to `usage.json.tmp` and `MOVE`s it over the real file. |
+| `s3` | `endpoint`, `region` (`auto` for R2), `bucket`, `key`, `accessKeyId` (secret), `secretAccessKey` (secret), `virtualHosted` (default `false`), `cacheControl` (default `private, max-age=60`) | AWS Signature V4 `PUT`; stores `Content-Type: application/json` and the cache header with the object. Use an access key limited to this bucket. |
+| `http` / `webdav` | `url`, `token` (secret, sent as `Bearer`) **or** `username` + `password` (secret, Basic), `headers` (extra, not secret), `webdavMove` | Plain `PUT`. HTTPS only (plain `http://` is refused except for `127.0.0.1`/`localhost`, or with `"allowInsecure": true`). With `webdavMove: true`, uploads to `usage.json.tmp` and `MOVE`s it over the real file. |
 | `ftp` | `host`, `port` (21), `user`, `password` (secret), `path`, `tls` (default `true`), `passive` (default `true`), `caFile`, `verifyTls` | FTPS with certificate verification by default. Plain FTP sends the password in clear: only with `"tls": false`, on a network you trust. |
 | `sftp` | `host`, `port` (22), `user`, `path`, `identityFile`, `knownHostsFile`, `strictHostKeyChecking` (default `yes`) | Uses the system `sftp` in batch mode: **key authentication only** (launchd cannot answer prompts). Add the server to `known_hosts` once: `ssh-keyscan -p 22 ssh.example.com >> ~/.ssh/known_hosts`, and use a key without a passphrase dedicated to this upload. |
 | `command` | `command` (list of arguments; `{file}` is the JSON's path), `timeoutSeconds` (60) | No shell is involved. Put secrets in the tool's own config (e.g. `rclone config`), not in the arguments. |

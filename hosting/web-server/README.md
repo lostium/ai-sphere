@@ -6,6 +6,10 @@ Status: tested end to end in `hosting/test/integration.sh`. SFTP feeds nginx wit
 
 Use a folder with a random name (e.g. `/ais-3kq9…/usage.json`) so the path cannot be guessed, in addition to the key.
 
+## Fail-safe checks
+
+Both snippets match the file name case-insensitively (so `/USAGE.JSON` cannot slip past on a case-insensitive file system) and send `Cache-Control: private` with `Vary: X-Key`, so a shared cache in front never hands the keyed response to someone else. A server that ignores the snippet (for example Apache with `AllowOverride None`) serves the file to anyone, so **run `hosting/check.sh` after every change**: it must report 403 without the key.
+
 ## nginx
 
 Add [`nginx.conf`](nginx.conf) inside your HTTPS `server { … }` block, replace `CHANGE_ME` with your `X-Key`, and adjust the `location` path if you use a folder. Reload with `nginx -t && nginx -s reload`.

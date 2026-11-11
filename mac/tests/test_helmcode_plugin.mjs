@@ -20,7 +20,7 @@ assert.equal(typeof manifest.fetchUsage, "function");
 
 // Response shape seen on 2026-11-11, with illustrative values (models list trimmed)
 const real = {
-  enabled: true, tier: "inference",
+  enabled: true, tier: "example-tier",
   periodStart: "2026-10-31T00:00:00Z", periodEnd: "2026-12-01T00:00:00Z",
   allowanceCredits: 5000, usedCredits: 0, remainingCredits: 5000,
   packCredits: 0, packExpiresAt: null, frontierPaused: false, frozen: false, models: [],

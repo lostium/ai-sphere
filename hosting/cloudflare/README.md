@@ -27,7 +27,7 @@ cp wrangler.toml.example wrangler.toml                # paste the id; wrangler.t
 Secrets: the watch key you already have, and a new upload token for the Mac. Each is piped from the Keychain, so it never appears on screen or in your shell history:
 
 ```sh
-security add-generic-password -U -s ai-sphere-worker-upload-token -a ai-sphere -w "$(python3 -c 'import secrets;print(secrets.token_urlsafe(32))')"
+printf 'add-generic-password -U -s ai-sphere-worker-upload-token -a ai-sphere -w %s\n' "$(python3 -c 'import secrets;print(secrets.token_urlsafe(32))')" | security -i
 security find-generic-password -s ai-sphere-worker-upload-token -w | pnpm dlx wrangler secret put UPLOAD_TOKEN
 security find-generic-password -s ai-sphere-watch-key -w          | pnpm dlx wrangler secret put WATCH_KEY
 pnpm dlx wrangler deploy                              # prints https://ai-sphere.<subdomain>.workers.dev
@@ -59,7 +59,7 @@ Needs a domain whose DNS is on Cloudflare (R2's `r2.dev` URLs cannot have WAF ru
    ```
    (http.host eq "ais-<random>.example.com" and not any(http.request.headers["x-key"][*] eq "<your X-Key>"))
    ```
-5. **Cache:** the `s3` target stores `Cache-Control: public, max-age=60` and `Content-Type: application/json` with the object, and Cloudflare honours them. Do not add a "Cache Everything" rule with a longer edge TTL.
+5. **Cache:** the `s3` target stores `Cache-Control: private, max-age=60` and `Content-Type: application/json` with the object, so Cloudflare does not keep a shared copy; with a few hundred requests a day nothing needs caching. Do not add a "Cache Everything" rule.
 6. Use [`../examples/cloudflare-r2.json`](../examples/cloudflare-r2.json) (`endpoint` is `https://<ACCOUNT_ID>.r2.cloudflarestorage.com`, `region` is `auto`), upload once and run `hosting/check.sh`.
 
 Rotating the `X-Key` means editing the WAF rule (option B) or `wrangler secret put WATCH_KEY` (option A), then rebuilding the watch face.

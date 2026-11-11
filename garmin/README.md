@@ -34,6 +34,7 @@ To add a language, create `resources-<code>/strings/strings.xml` with the same i
 | `resources/`, `resources-spa/` | Strings, icon and settings (`dataUrl`, `accessKey`, `refreshMinutes`). |
 | `scripts/build.sh` | Builds. Generates `build/resources/properties.xml` with the URL and key. |
 | `scripts/mtp_send.py` | Copies the `.prg` to the watch over USB. |
+| `scripts/test.sh`, `tests/` | Monkey C unit tests (`(:test)`, only compiled with `monkeyc -t`), run in the simulator. |
 | `build/`, `bin/` | Generated, ignored by git (they contain the URL and key). |
 
 ## Developer key and app id
@@ -41,10 +42,9 @@ To add a language, create `resources-<code>/strings/strings.xml` with the same i
 Builds are signed with your Connect IQ developer key, by default `~/.config/connectiq/developer_key.der` (override with `CIQ_DEVELOPER_KEY`). If you do not have one:
 
 ```sh
-mkdir -p ~/.config/connectiq
-openssl genrsa -out /tmp/ciq.pem 4096
-openssl pkcs8 -topk8 -inform PEM -outform DER -in /tmp/ciq.pem -out ~/.config/connectiq/developer_key.der -nocrypt
-rm /tmp/ciq.pem
+mkdir -p ~/.config/connectiq && chmod 700 ~/.config/connectiq
+(umask 077; PEM="$(mktemp)" && openssl genrsa -out "$PEM" 4096 \
+  && openssl pkcs8 -topk8 -inform PEM -outform DER -in "$PEM" -out ~/.config/connectiq/developer_key.der -nocrypt; rm -f "$PEM")
 ```
 
 **Back it up:** a watch only accepts an update signed with the same key as the installed version.
@@ -62,7 +62,17 @@ DEVICE=epix2pro47mm scripts/build.sh   # another device (it must be listed in ma
 
 The URL (`publicUrl`) and the key reference (`watchKey`) come from the publisher's config, `~/.config/ai-sphere/publish.json` (see `hosting/README.md`); the build refuses non-HTTPS URLs. Output: `bin/AISphere.prg`.
 
+## Tests
+
+```sh
+scripts/test.sh     # compiles with -t and runs the (:test) functions in the simulator
+```
+
+They cover the JSON sanitiser: a good payload, wrong versions and impossible dates, 200 providers with oversized names and out-of-range values, junk entries, and date parsing.
+
 ## Syncing on the watch
+
+- The downloaded JSON is not trusted: `QuotaStore.sanitise` keeps only the contract's fields, at most 8 providers and 3 windows each, names and labels cut to 10 characters, percentages clamped and impossible dates dropped. If stored data still fails to draw, it is discarded instead of failing on every redraw.
 
 - After installing, or after a settings change, the face asks for data as soon as Connect IQ allows it. Then every `refreshMinutes`: 15, set in `scripts/build.sh`. Connect IQ does not allow less than 5.
 - The request goes over Bluetooth to Garmin Connect on the phone. iOS may delay it a little if the app has been in the background for a while. Without the phone the code is -104 and the footer shows "no phone · data X ago".
