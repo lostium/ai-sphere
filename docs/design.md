@@ -40,7 +40,7 @@ Things that could not be confirmed from the documentation and depend on the real
 - **Pace tick:** a radial mark at `100 − pace.expectedUsedPercent`. If the arc does not reach the tick, you are using the quota faster than it lasts. Drawn only when CodexBar gives `pace`; it is never estimated for other providers.
 - **Providers with many quotas** (Antigravity has five): still one arc. The arc shows the most used window and the inner line the second one. Critical lines use short labels that name the group: `GEM 5H`, `GEM WK`, `C/G 5H`, `C/G WK`, `ARGON`.
 - **Centre:** battery with an icon at the top, date, large time, steps and temperature with icons.
-- **Critical lines:** at most two short lines under the time, such as `CODEX WK 1% ↻49m`. They appear only when a quota has 40 % or less left or will run out before its reset; otherwise the face reads "all quotas OK". A quota that will run out goes first, in red, with `out in 3d` instead of the reset time.
+- **Critical lines:** at most two short lines under the time, such as `CODEX WK 1% ↻49m`. They appear only when a quota has 40 % or less left or will run out before its reset; otherwise the Lostium logo, in its own orange and white, sits in their place. A quota that will run out goes first, in red, with `out in 3d` instead of the reset time.
 - **Offline:** the last values stay (never zeros), the footer turns amber, and a window whose reset has already passed is drawn dotted.
 - **Always-on:** thin time, 3 px arcs without track, one critical line, and a shift of a few pixels every minute.
 - No animations; one redraw per minute.

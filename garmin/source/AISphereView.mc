@@ -39,7 +39,6 @@ class AISphereView extends WatchUi.WatchFace {
     private var _fValue as Graphics.FontType = Graphics.FONT_XTINY;
     private var _fLine as Graphics.FontType = Graphics.FONT_XTINY;
     private var _fSmall as Graphics.FontType = Graphics.FONT_XTINY;
-    private var _fNote as Graphics.FontType = Graphics.FONT_XTINY;
     private var _fLabel as Graphics.VectorFont or Null = null;
 
     // Localised texts (resources/strings and resources-spa/strings), loaded once in onLayout.
@@ -57,11 +56,10 @@ class AISphereView extends WatchUi.WatchFace {
         _fValue = font("RobotoCondensedBold", 30, Graphics.FONT_SMALL);
         _fLine = font("RobotoCondensedBold", 24, Graphics.FONT_XTINY);
         _fSmall = font("RobotoCondensedRegular", 22, Graphics.FONT_XTINY);
-        _fNote = font("RobotoCondensedRegular", 24, Graphics.FONT_XTINY);
         _fLabel = Graphics.getVectorFont({:face => ["RobotoCondensedBold", "BionicBold"], :size => sc(17)});
 
         var ids = {
-            :quotasOk => Rez.Strings.QuotasOk, :runsOut => Rez.Strings.RunsOut, :soon => Rez.Strings.Soon,
+            :runsOut => Rez.Strings.RunsOut, :soon => Rez.Strings.Soon,
             :noUrl => Rez.Strings.NoUrl, :waiting => Rez.Strings.Waiting, :noData => Rez.Strings.NoData,
             :ago => Rez.Strings.Ago, :noPhone => Rez.Strings.NoPhone, :error => Rez.Strings.Error,
             :dataAge => Rez.Strings.DataAge, :macSilent => Rez.Strings.MacSilent, :updated => Rez.Strings.Updated,
@@ -132,8 +130,8 @@ class AISphereView extends WatchUi.WatchFace {
         var critical = FaceModel.critical(providers, 2);
         if (critical.size() == 0) {
             if (providers.size() > 0) {
-                dc.setColor(Theme.MUTED, Graphics.COLOR_TRANSPARENT);
-                dc.drawText(cx, cy + sc(110), _fNote, t(:quotasOk), Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+                // Nothing to watch: the Lostium logo in its own colours instead of a text note.
+                drawLogo(dc, cx, cy + sc(110), sc(124));
             }
         } else {
             for (var i = 0; i < critical.size(); i++) {
@@ -457,6 +455,44 @@ class AISphereView extends WatchUi.WatchFace {
         if (status[2] as Boolean) {
             dc.setColor(Theme.DIM, Graphics.COLOR_TRANSPARENT);
             dc.drawText(x, y + sc(150), _fSmall, t(:noNewData), Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        }
+    }
+
+    // ------------------------------------------------------------------ Lostium logo
+
+    //! Lostium logo (lostium-logo.svg, 310 × 130) as filled rectangles: every stroke is horizontal or
+    //! vertical, 10 units wide, so rectangles with mitred corners reproduce it exactly at any size.
+    //! The logo is a trademark of Lostium and is not covered by this project's MIT license.
+    const LOGO_W = 310;
+    const LOGO_H = 130;
+    const LOGO_ORANGE = 0xF9620F;
+    const LOGO_RECTS = [
+        [10, 10, 10, 110], [10, 110, 290, 10], [290, 10, 10, 110], [30, 10, 270, 10], [30, 10, 10, 90],
+        [30, 90, 40, 10], [60, 70, 10, 30], [50, 70, 20, 10], [50, 30, 10, 50], [50, 30, 50, 10],
+        [90, 30, 10, 50], [80, 70, 20, 10], [80, 70, 10, 30], [80, 90, 60, 10], [130, 50, 10, 50],
+        [110, 50, 30, 10], [110, 30, 10, 30], [110, 30, 70, 10], [150, 39, 10, 61], [150, 90, 30, 10],
+        [170, 50, 10, 50], [179, 90, 41, 10], [210, 50, 10, 50], [219, 90, 41, 10], [250, 50, 10, 50],
+        [259, 90, 21, 10], [270, 30, 10, 70], [230, 30, 50, 10], [230, 30, 10, 50], [190, 30, 41, 10],
+        [190, 30, 10, 50], [70, 50, 10, 10], [110, 70, 10, 10]
+    ] as Array<Array<Number>>;
+
+    //! Draws the logo centred on (cx, cy), `width` pixels wide. Edges are rounded independently so
+    //! neighbouring rectangles always meet without gaps.
+    function drawLogo(dc as Graphics.Dc, cx as Number, cy as Number, width as Number) as Void {
+        var height = width * LOGO_H / LOGO_W;
+        var left = cx - width / 2;
+        var top = cy - height / 2;
+        var k = width.toFloat() / LOGO_W;
+        dc.setColor(LOGO_ORANGE, Graphics.COLOR_TRANSPARENT);
+        dc.fillRectangle(left, top, width, height);
+        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
+        for (var i = 0; i < LOGO_RECTS.size(); i++) {
+            var r = LOGO_RECTS[i];
+            var x0 = (r[0] * k + 0.5).toNumber();
+            var y0 = (r[1] * k + 0.5).toNumber();
+            var x1 = ((r[0] + r[2]) * k + 0.5).toNumber();
+            var y1 = ((r[1] + r[3]) * k + 0.5).toNumber();
+            dc.fillRectangle(left + x0, top + y0, x1 - x0, y1 - y0);
         }
     }
 

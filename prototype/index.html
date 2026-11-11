@@ -208,7 +208,7 @@ code { font-family: var(--font-data); font-size: 13px; color: var(--ink); }
           <li><span class="swatch" style="background:var(--ok)"></span><p><b>Outer arc:</b> the percentage left in each provider's most-used window. At 100 % the arc is full, and it empties as you go. The order is fixed, so each provider is always in the same place.</p></li>
           <li><span class="swatch" style="background:var(--ink);width:3px;height:16px;margin:4px 0 0 9px"></span><p><b>White notch:</b> the pace CodexBar calculates, that is, where you would be if you used the quota at a steady rate until the reset. If the arc does not reach the notch, you are using it faster than it lasts. It only appears for providers that report this (today, Codex and Claude).</p></li>
           <li><span class="swatch" style="background:#9aa0a8;height:3px;margin-top:10px"></span><p><b>Thin inner line:</b> what is left in the provider's second window (for example, 5 h versus weekly).</p></li>
-          <li><span class="swatch" style="background:var(--crit)"></span><p><b>Lines under the time:</b> they only appear when there is something to watch, that is, a quota with 40 % or less left or one that will run out before its reset. At most two are shown, with what is left and the time until the reset (↻15h). Those that run out first go on top, in red, with <i>out in 3d</i>. If everything is fine, it just reads <i>all quotas OK</i>.</p></li>
+          <li><span class="swatch" style="background:var(--crit)"></span><p><b>Lines under the time:</b> they only appear when there is something to watch, that is, a quota with 40 % or less left or one that will run out before its reset. At most two are shown, with what is left and the time until the reset (↻15h). Those that run out first go on top, in red, with <i>out in 3d</i>. If everything is fine, the Lostium logo takes their place.</p></li>
           <li><span class="swatch" style="background:var(--warn)"></span><p><b>Footer:</b> when the latest data arrived. With no connection the values are kept and the notice turns amber; a quota whose reset has already passed is drawn dotted instead of dropping to zero.</p></li>
         </ul>
         <div class="legend-scale">
@@ -426,9 +426,9 @@ code { font-family: var(--font-data); font-size: 13px; color: var(--ink); }
         s += `<text x="${g.x + 22}" y="${cy + 6}" font-family="${FONT_DATA}" font-size="16" font-weight="500" fill="${COL.ink}">${g.value}</text>`;
       });
 
-      // Up to two critical quotas; a quiet note when there is nothing to watch
+      // Up to two critical quotas; the Lostium logo (lostium-logo.svg, 310 × 130) when there is nothing to watch
       if (!critical.length) {
-        s += `<text x="${C}" y="333" text-anchor="middle" font-family="${FONT_DATA}" font-size="13" letter-spacing="1" fill="${COL.dim}">all quotas OK</text>`;
+        s += `<g transform="translate(${C - 62} ${337 - 26}) scale(0.4)"><rect width="310" height="130" fill="#f9620f"/> <g fill="none" stroke="#ffffff" stroke-width="10" stroke-miterlimit="10"> <polyline points="15,10 15,115 295,115 295,15 35,15 35,95 65,95 65,75 55,75 55,35 95,35 95,75 85,75 85,95 135,95 135,55 115,55 115,35 180,35"/> <polyline points="155,39 155,95 175,95 175,50"/> <polyline points="179,95 215,95 215,50"/> <polyline points="219,95 255,95 255,50"/> <polyline points="259,95 275,95 275,35 235,35 235,80"/> <polyline points="231,35 195,35 195,80"/> </g> <rect x="70" y="50" width="10" height="10" fill="#ffffff"/> <rect x="110" y="70" width="10" height="10" fill="#ffffff"/></g>`;
       }
       critical.slice(0, 2).forEach(({ p, w }, k) => {
         const y = 322 + k * 23;

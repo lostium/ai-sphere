@@ -7,7 +7,6 @@
     <string id="RefreshTitle">Refresh every (minutes)</string>
 
     <!-- Face. $1$, $2$ are filled in by the code. -->
-    <string id="QuotasOk">all quotas OK</string>
     <string id="RunsOut">out in $1$</string>
     <string id="Soon">soon</string>
     <string id="NoUrl">no data URL set</string>

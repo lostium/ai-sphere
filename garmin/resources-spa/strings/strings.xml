@@ -7,7 +7,6 @@
     <string id="RefreshTitle">Actualizar cada (minutos)</string>
 
     <!-- Esfera -->
-    <string id="QuotasOk">cuotas en orden</string>
     <string id="RunsOut">agota $1$</string>
     <string id="Soon">pronto</string>
     <string id="NoUrl">falta la URL</string>

@@ -6,7 +6,7 @@ Watch face for the **Epix Pro (Gen 2) 51 mm** (`epix2pro51mm`, 454 × 454 AMOLED
 
 - **Bezel:** one arc per provider (280°, gap at the bottom), in the JSON's order. Each arc is the percentage **left** of its most used window: green above 40 %, amber 16–40 %, red 15 % or less. A thin inner line shows the second window. The **pace tick** marks where the arc would be at a constant rate (only when CodexBar provides `pace`). Name and percentage are drawn as curved text.
 - **Centre:** battery with icon at the top, date, large time, steps and temperature with icons.
-- **Critical lines:** at most two, only for quotas with 40 % or less left or that will run out before the reset (`CODEX WK 1% ↻49m`, `out in 3d` in red). If there are none: "all quotas OK".
+- **Critical lines:** at most two, only for quotas with 40 % or less left or that will run out before the reset (`CODEX WK 1% ↻49m`, `out in 3d` in red). If there are none, the Lostium logo is drawn in its place, in orange and white (`drawLogo`, built from rectangles so it stays sharp at any size).
 - **Footer:** "updated X ago", or in amber "no phone · data X ago" and "Mac not publishing · X ago" when the data gets old. Offline, the last values stay (never zeros) and a window whose reset has passed is drawn dotted.
 - **Always-on:** thin time, 3 px arcs without track, one critical line, and a shift of a few pixels per minute (Connect IQ allows at most 10 % lit pixels).
 

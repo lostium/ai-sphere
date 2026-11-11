@@ -27,7 +27,7 @@ The JSON format, the only thing the three parts share, is described in [`docs/js
 - **Bezel:** one arc per provider. A full green arc means the quota is untouched; it shrinks and turns amber (≤ 40 %) and red (≤ 15 %) as you use it. A thin inner line shows the provider's second window.
 - **Pace tick:** where the arc should be if you used the quota at a constant rate until it resets. If the arc falls short of the tick, you are burning through it faster than it lasts. Shown when CodexBar provides pace data (Codex and Claude).
 - **Centre:** battery, date, time, steps and temperature.
-- **Critical lines:** up to two short lines (`CODEX WK 12% ↻2d`, or `out in 3d` in red) only when a quota is low or will run out before its reset; otherwise "all quotas OK".
+- **Critical lines:** up to two short lines (`CODEX WK 12% ↻2d`, or `out in 3d` in red) only when a quota is low or will run out before its reset; otherwise the Lostium logo, in its orange and white.
 - **Footer:** how old the data is, and whether the phone or the Mac is not delivering.
 - **Always-on mode:** a dimmed, thin version within the AMOLED 10 % lit-pixel limit.
 - **Languages:** English, and Spanish when the watch is set to Spanish.

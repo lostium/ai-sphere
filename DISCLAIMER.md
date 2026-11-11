@@ -6,6 +6,8 @@ AI Sphere is an independent, personal open-source project, provided **"as is", w
 
 AI Sphere is not affiliated with, endorsed by or sponsored by Garmin, CodexBar, Bunny.net, Cloudflare, Amazon Web Services, Backblaze, OpenAI, Anthropic, Google, NaN Builders (HelmCode) or any other company or service mentioned in this repository. All product names, logos and trademarks are the property of their respective owners and are used here only to identify compatible products and services.
 
+The Lostium logo shown on the watch face and in the prototype is a trademark of Lostium, the project's author. It is **not** licensed under the MIT License: if you fork or redistribute AI Sphere, remove it (`drawLogo` in `garmin/source/AISphereView.mc` and the logo in `prototype/index.html`) or ask Lostium for permission.
+
 ## Accuracy of the data
 
 The quota figures shown on the watch come from CodexBar and from the providers' own endpoints, and may be incomplete, estimated, delayed (up to about half an hour) or wrong. Providers can change their limits, plans or APIs at any time without notice. **Do not rely on AI Sphere for billing, budgeting or any decision where an error matters**; check the provider's own dashboard.
