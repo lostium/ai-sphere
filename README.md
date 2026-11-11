@@ -100,6 +100,10 @@ tools/check-private.sh                                 # before pushing: no pers
 
 A personal project, in daily use on one watch. It is not on the Connect IQ Store; you install it from source with your own developer key.
 
+## Disclaimer
+
+AI Sphere is an independent personal project, provided as is, without warranty. It is not affiliated with or endorsed by Garmin, CodexBar, Bunny.net, Cloudflare or any AI provider; all trademarks belong to their owners. Quota figures may be delayed or inaccurate, so do not use them for billing decisions. Some integrations rely on unofficial endpoints, and you are responsible for complying with each provider's terms and for the security and cost of your own hosting. Read the full [disclaimer](DISCLAIMER.md).
+
 ## License
 
-[MIT](LICENSE). AI Sphere is not affiliated with Garmin, CodexBar, Bunny.net, Cloudflare or any AI provider.
+[MIT](LICENSE).
