@@ -1,0 +1,28 @@
+<strings>
+    <string id="AppName">AI Sphere</string>
+
+    <!-- Ajustes -->
+    <string id="DataUrlTitle">URL del JSON</string>
+    <string id="AccessKeyTitle">Clave X-Key</string>
+    <string id="RefreshTitle">Actualizar cada (minutos)</string>
+
+    <!-- Esfera -->
+    <string id="QuotasOk">cuotas en orden</string>
+    <string id="RunsOut">agota $1$</string>
+    <string id="Soon">pronto</string>
+    <string id="NoUrl">falta la URL</string>
+    <string id="Waiting">esperando datos</string>
+    <string id="NoData">sin datos · error $1$</string>
+    <string id="Ago">hace $1$</string>
+    <string id="NoPhone">sin móvil</string>
+    <string id="Error">error $1$</string>
+    <string id="DataAge">$1$ · datos de $2$</string>
+    <string id="MacSilent">el Mac no publica · $1$</string>
+    <string id="Updated">actualizado $1$</string>
+    <string id="NoNewData">sin datos nuevos</string>
+    <string id="ThousandsSeparator">.</string>
+    <string id="NeedsHttps">requiere HTTPS</string>
+    <string id="NotJson">no es JSON</string>
+    <string id="BadKey">X-Key rechazada</string>
+    <string id="NotFound">sin archivo</string>
+</strings>

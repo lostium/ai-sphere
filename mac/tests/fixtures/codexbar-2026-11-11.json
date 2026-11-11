@@ -1,0 +1,311 @@
+[
+ {
+  "rateWindowLabels": {
+   "secondary": "Weekly"
+  },
+  "credits": {
+   "balanceIsWorkspace": false,
+   "updatedAt": "2026-11-11T10:17:17Z",
+   "balanceReadSucceeded": true,
+   "events": [],
+   "remaining": 0,
+   "creditsAvailable": false
+  },
+  "version": "0.167.0",
+  "usage": {
+   "secondary": {
+    "windowMinutes": 10080,
+    "usedPercent": 99,
+    "resetDescription": "11:31 AM",
+    "resetsAt": "2026-11-11T10:31:15Z"
+   },
+   "codexResetCredits": {
+    "credits": [
+     {
+      "description": "¡Gracias por usar Codex! Has recibido un restablecimiento gratuito del límite de uso.",
+      "id": "codex-reset-credit-example",
+      "title": "Restablecimiento completo",
+      "granted_at": "2026-11-01T00:00:00Z",
+      "expires_at": "2026-12-01T00:00:00Z",
+      "status": "available",
+      "reset_type": "codex_rate_limits"
+     },
+     {
+      "description": "¡Gracias por usar Codex! Has recibido un restablecimiento gratuito del límite de uso.",
+      "id": "codex-reset-credit-example",
+      "title": "Restablecimiento completo",
+      "granted_at": "2026-11-02T00:00:00Z",
+      "expires_at": "2026-12-02T00:00:00Z",
+      "status": "available",
+      "reset_type": "codex_rate_limits"
+     }
+    ],
+    "updatedAt": "2026-11-11T10:17:17Z",
+    "availableCount": 2
+   },
+   "accountEmail": "user@example.com",
+   "dataConfidence": "exact",
+   "updatedAt": "2026-11-11T10:17:17Z",
+   "tertiary": null,
+   "primary": null,
+   "providerCost": {
+    "period": "Extra usage",
+    "updatedAt": "2026-11-11T10:17:17Z",
+    "limit": 0,
+    "used": 0,
+    "balanceUpdatedAt": "2026-11-11T10:17:17Z",
+    "currencyCode": "Credits"
+   },
+   "loginMethod": "example-plan",
+   "planObservation": {
+    "source": "usage_response",
+    "observedAt": "2026-11-11T10:17:17Z",
+    "rawPlan": "example-plan"
+   },
+   "identity": {
+    "providerID": "codex",
+    "accountEmail": "user@example.com",
+    "loginMethod": "example-plan"
+   }
+  },
+  "provider": "codex",
+  "source": "oauth",
+  "resetCredits": {
+   "available": 2,
+   "nextExpiresAt": "2026-12-01T00:00:00Z"
+  },
+  "pace": {
+   "secondary": {
+    "summary": "On pace | Expected 100% used | Lasts until reset",
+    "willLastToReset": true,
+    "deltaPercent": -1,
+    "stage": "onTrack",
+    "expectedUsedPercent": 100
+   }
+  }
+ },
+ {
+  "rateWindowLabels": {
+   "secondary": "Weekly"
+  },
+  "source": "web",
+  "pace": {
+   "secondary": {
+    "expectedUsedPercent": 91,
+    "summary": "64% in reserve | Expected 91% used | Lasts until reset",
+    "willLastToReset": true,
+    "deltaPercent": -64,
+    "stage": "farBehind"
+   }
+  },
+  "usage": {
+   "subscriptionRenewsAt": "2026-12-01T00:00:00Z",
+   "secondary": {
+    "windowMinutes": 10080,
+    "usedPercent": 27,
+    "resetDescription": "Nov 12 at 1:59AM",
+    "resetsAt": "2026-11-12T00:59:59Z"
+   },
+   "details": [
+    {
+     "rows": [
+      {
+       "label": "Limit Reset Credits",
+       "secondaryValue": "Expires Dec 10 at 11:00 PM",
+       "value": "3 available"
+      }
+     ]
+    }
+   ],
+   "accountEmail": "user@example.com",
+   "accountOrganization": "Example Org",
+   "extraRateWindows": [
+    {
+     "window": {
+      "windowMinutes": 10080,
+      "resetsAt": "2026-11-12T00:59:59Z",
+      "usedPercent": 6
+     },
+     "title": "Fable only",
+     "id": "claude-weekly-scoped-fable"
+    }
+   ],
+   "updatedAt": "2026-11-11T10:17:17Z",
+   "tertiary": null,
+   "primary": null,
+   "providerCost": {
+    "period": "Extra usage",
+    "updatedAt": "2026-11-11T10:17:17Z",
+    "limit": 0,
+    "used": 0,
+    "balance": 2.59,
+    "currencyCode": "EUR"
+   },
+   "loginMethod": "Example Plan",
+   "identity": {
+    "accountEmail": "user@example.com",
+    "accountOrganization": "Example Org",
+    "providerID": "claude",
+    "loginMethod": "Example Plan"
+   }
+  },
+  "provider": "claude"
+ },
+ {
+  "rateWindowLabels": {
+   "primary": "5-hour",
+   "secondary": "Weekly",
+   "tertiary": "Monthly"
+  },
+  "source": "local",
+  "usage": {
+   "primary": {
+    "windowMinutes": 300,
+    "usedPercent": 0,
+    "resetsAt": "2026-11-11T15:17:15Z"
+   },
+   "secondary": {
+    "windowMinutes": 10080,
+    "usedPercent": 0,
+    "resetsAt": "2026-11-15T23:59:59Z"
+   },
+   "tertiary": {
+    "windowMinutes": 43200,
+    "usedPercent": 0,
+    "resetsAt": "2026-11-26T08:42:20Z"
+   },
+   "updatedAt": "2026-11-11T10:17:15Z",
+   "dataConfidence": "estimated"
+  },
+  "provider": "opencodego"
+ },
+ {
+  "account": "user@example.com",
+  "rateWindowLabels": {
+   "primary": "Gemini Models",
+   "secondary": "Claude and GPT"
+  },
+  "source": "cli",
+  "usage": {
+   "secondary": {
+    "windowMinutes": 300,
+    "usedPercent": 0,
+    "resetsAt": "2026-11-11T15:17:20Z"
+   },
+   "accountEmail": "user@example.com",
+   "updatedAt": "2026-11-11T10:17:20Z",
+   "extraRateWindows": [
+    {
+     "window": {
+      "windowMinutes": 300,
+      "resetsAt": "2026-11-11T15:17:20Z",
+      "usedPercent": 0
+     },
+     "title": "Gemini 5-hour",
+     "id": "antigravity-quota-summary-gemini-5h"
+    },
+    {
+     "window": {
+      "windowMinutes": 10080,
+      "resetsAt": "2026-11-18T10:17:20Z",
+      "usedPercent": 0
+     },
+     "title": "Gemini weekly",
+     "id": "antigravity-quota-summary-gemini-weekly"
+    },
+    {
+     "window": {
+      "windowMinutes": 300,
+      "resetsAt": "2026-11-11T15:17:20Z",
+      "usedPercent": 0
+     },
+     "title": "Claude/GPT 5-hour",
+     "id": "antigravity-quota-summary-3p-5h"
+    },
+    {
+     "window": {
+      "windowMinutes": 10080,
+      "resetsAt": "2026-11-18T10:17:20Z",
+      "usedPercent": 0
+     },
+     "title": "Claude/GPT weekly",
+     "id": "antigravity-quota-summary-3p-weekly"
+    },
+    {
+     "window": {
+      "windowMinutes": 10080,
+      "resetsAt": "2026-11-18T10:17:20Z",
+      "usedPercent": 0
+     },
+     "title": "Gemini 4 Argon weekly",
+     "id": "antigravity-quota-summary-gemini-argon-wtu-weekly"
+    }
+   ],
+   "tertiary": null,
+   "primary": {
+    "windowMinutes": 300,
+    "usedPercent": 0,
+    "resetsAt": "2026-11-11T15:17:20Z"
+   },
+   "identity": {
+    "providerID": "antigravity",
+    "accountEmail": "user@example.com"
+   }
+  },
+  "provider": "antigravity"
+ },
+ {
+  "rateWindowLabels": {
+   "primary": "Model quota"
+  },
+  "source": "web",
+  "usage": {
+   "secondary": null,
+   "accountOrganization": "Example Org",
+   "dataConfidence": "exact",
+   "updatedAt": "2026-11-11T10:17:18Z",
+   "extraRateWindows": [
+    {
+     "window": {
+      "resetsAt": "2026-12-01T00:00:00Z",
+      "resetDescription": "deepseek-v4-flash · 411,064,771 / 3,000,000,000 tokens",
+      "usedPercent": 13.702159033333333
+     },
+     "title": "deepseek-v4-flash",
+     "id": "helmcode-deepseek-v4-flash"
+    },
+    {
+     "window": {
+      "resetsAt": "2026-12-01T00:00:00Z",
+      "resetDescription": "qwen3.8-flash · 45,663,844 / 500,000,000 tokens",
+      "usedPercent": 9.132768800000001
+     },
+     "title": "qwen3.8-flash",
+     "id": "helmcode-qwen3.8-flash"
+    },
+    {
+     "window": {
+      "resetsAt": "2026-12-01T00:00:00Z",
+      "resetDescription": "mimo-v2.6-flash · 29,696,455 / 1,000,000,000 tokens",
+      "usedPercent": 2.9696455
+     },
+     "title": "mimo-v2.6-flash",
+     "id": "helmcode-mimo-v2.6-flash"
+    }
+   ],
+   "tertiary": null,
+   "primary": {
+    "usedPercent": 100,
+    "resetDescription": "glm5.3-flash · 2,000,279,752 / 2,000,000,000 tokens",
+    "resetsAt": "2026-12-01T00:00:00Z"
+   },
+   "loginMethod": "Dashboard session",
+   "identity": {
+    "providerID": "helmcode",
+    "loginMethod": "Dashboard session",
+    "accountOrganization": "Example Org"
+   }
+  },
+  "provider": "helmcode"
+ }
+]

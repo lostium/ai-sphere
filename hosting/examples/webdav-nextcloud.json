@@ -1,0 +1,11 @@
+{
+  "publicUrl": "https://www.example.com/ais-RANDOM/usage.json",
+  "watchKey": "keychain:ai-sphere-watch-key",
+  "target": {
+    "type": "webdav",
+    "url": "https://dav.example.com/ais-RANDOM/usage.json",
+    "username": "deploy",
+    "password": "keychain:ai-sphere-webdav-password",
+    "webdavMove": true
+  }
+}

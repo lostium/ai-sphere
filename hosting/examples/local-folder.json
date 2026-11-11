@@ -1,0 +1,8 @@
+{
+  "publicUrl": "https://home.example.com/ais-RANDOM/usage.json",
+  "watchKey": "keychain:ai-sphere-watch-key",
+  "target": {
+    "type": "file",
+    "path": "/usr/local/var/www/ais-RANDOM/usage.json"
+  }
+}

@@ -1,0 +1,17 @@
+# Apache 2.4 (.htaccess in the folder that holds usage.json): serve it only with the right X-Key header.
+# Replace CHANGE_ME with your secret (the value of the Keychain item ai-sphere-watch-key).
+# Needs AllowOverride AuthConfig FileInfo (most shared hosting allows it) and mod_headers.
+
+<Files "usage.json">
+    Require expr "%{HTTP:X-Key} == 'CHANGE_ME'"
+    ForceType application/json
+    <IfModule mod_headers.c>
+        Header set Cache-Control "public, max-age=60"
+        Header set X-Content-Type-Options "nosniff"
+    </IfModule>
+</Files>
+
+# Keep the temporary upload names private.
+<FilesMatch "\.tmp$">
+    Require all denied
+</FilesMatch>

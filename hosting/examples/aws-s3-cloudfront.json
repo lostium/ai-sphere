@@ -1,0 +1,14 @@
+{
+  "publicUrl": "https://dRANDOM.cloudfront.net/usage.json",
+  "watchKey": "keychain:ai-sphere-watch-key",
+  "target": {
+    "type": "s3",
+    "endpoint": "https://s3.eu-west-1.amazonaws.com",
+    "region": "eu-west-1",
+    "bucket": "ai-sphere-RANDOM",
+    "key": "usage.json",
+    "virtualHosted": true,
+    "accessKeyId": "keychain:ai-sphere-aws-access-key-id",
+    "secretAccessKey": "keychain:ai-sphere-aws-secret-access-key"
+  }
+}

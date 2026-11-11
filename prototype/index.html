@@ -1,0 +1,536 @@
+<title>AI Sphere</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@300;600&family=IBM+Plex+Mono:wght@400;500&family=Manrope:wght@400;600;700&display=swap">
+<style>
+/* Layout: a single dark "AMOLED" world — watch on a graphite bench at 1:1 scale, controls and reading notes beside it. */
+:root {
+  color-scheme: dark;
+  --bench: #121315;
+  --panel: #1A1C1F;
+  --line: #2A2D31;
+  --ink: #ECEAE5;
+  --muted: #8E9196;
+  --steps: #6EA8FF;
+  --ok: #4CD99A;
+  --warn: #FFB547;
+  --crit: #FF5A4E;
+  --font-display: "Saira Condensed", "Arial Narrow", sans-serif;
+  --font-body: "Manrope", "Helvetica Neue", Arial, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bench);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.55;
+}
+.wrap {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding-block: 40px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid;
+  gap: 32px;
+}
+header { display: grid; gap: 6px; }
+.eyebrow {
+  font-family: var(--font-data);
+  font-size: 12px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+h1 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(40px, 7vw, 64px);
+  line-height: 1;
+  letter-spacing: .01em;
+  margin: 0;
+  text-wrap: balance;
+}
+header p { margin: 0; color: var(--muted); max-width: 62ch; }
+main {
+  display: grid;
+  grid-template-columns: minmax(0, 520px) minmax(0, 1fr);
+  gap: 40px;
+  align-items: start;
+}
+@media (max-width: 900px) { main { grid-template-columns: minmax(0, 1fr); } }
+
+/* Watch */
+.stage { display: grid; gap: 14px; justify-items: center; min-width: 0; }
+.case {
+  width: min(510px, 100%);
+  aspect-ratio: 1;
+  max-width: 100%;
+  border-radius: 50%;
+  padding: 5.5%;
+  background:
+    radial-gradient(circle at 30% 25%, #4a4d52 0%, #2b2d31 38%, #17181a 70%, #0d0e0f 100%);
+  box-shadow: 0 30px 60px -20px rgba(0,0,0,.7), inset 0 0 0 1px #3a3d42;
+  display: grid;
+}
+.glass {
+  border-radius: 50%;
+  background: #000;
+  box-shadow: inset 0 0 0 2px #050505, 0 0 0 1px #000;
+  overflow: hidden;
+  display: grid;
+}
+#face { width: 100%; height: 100%; display: block; }
+.caption { font-size: 13px; color: var(--muted); text-align: center; max-width: 52ch; margin: 0; }
+
+/* Panel */
+aside { display: grid; gap: 22px; min-width: 0; }
+.group { display: grid; gap: 10px; }
+.group h2 {
+  font-family: var(--font-data);
+  font-weight: 500;
+  font-size: 12px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0;
+}
+.seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.seg button {
+  font: 600 14px var(--font-body);
+  color: var(--ink);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 8px 14px;
+  cursor: pointer;
+}
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bench); border-color: var(--ink); }
+.seg button:focus-visible, input[type=range]:focus-visible { outline: 2px solid var(--steps); outline-offset: 2px; }
+.range-row { display: flex; align-items: center; gap: 14px; }
+.range-row input { flex: 1; min-width: 0; accent-color: var(--ink); }
+.range-row output { font-family: var(--font-data); font-variant-numeric: tabular-nums; min-width: 2ch; text-align: right; }
+
+.meter {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: grid;
+  gap: 10px;
+}
+.meter-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.meter-value { font-family: var(--font-data); font-size: 22px; font-variant-numeric: tabular-nums; }
+.chip {
+  font: 600 12px var(--font-body);
+  border-radius: 999px;
+  padding: 3px 10px;
+  border: 1px solid currentColor;
+}
+.chip.pass { color: var(--ok); }
+.chip.fail { color: var(--crit); }
+.chip.info { color: var(--muted); }
+.bar { position: relative; height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.bar span { position: absolute; inset: 0 auto 0 0; background: var(--ink); border-radius: 3px; }
+.bar i { position: absolute; top: -2px; bottom: -2px; left: 50%; width: 2px; background: var(--crit); }
+.meter small { color: var(--muted); font-size: 13px; }
+
+.notes { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.notes li { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 10px; align-items: start; }
+.swatch { width: 22px; height: 6px; border-radius: 3px; margin-top: 9px; }
+.notes p { margin: 0; }
+.notes b { font-weight: 600; }
+.legend-scale { display: flex; gap: 6px; flex-wrap: wrap; font-family: var(--font-data); font-size: 12px; }
+.legend-scale span { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); }
+.legend-scale i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.port { color: var(--muted); font-size: 14px; }
+.port p { margin: 0 0 8px; }
+code { font-family: var(--font-data); font-size: 13px; color: var(--ink); }
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Prototype · Epix Pro (Gen 2) 51 mm · 454 × 454 px</span>
+    <h1>AI Sphere</h1>
+    <p>The bezel is shared among your AI providers. Each arc shows what is left of its most-used quota: full and green at the start, it shrinks and turns red as you use it up. In the centre, the time and the day's basics.</p>
+  </header>
+
+  <main>
+    <section class="stage" aria-label="Watch face preview">
+      <div class="case"><div class="glass">
+        <svg id="face" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 454 454" width="454" height="454" role="img" aria-label="AI Sphere watch face"></svg>
+      </div></div>
+      <p class="caption">Sample quotas based on CodexBar output from 11 November. Steps, temperature and battery are made-up values. The time is real.</p>
+    </section>
+
+    <aside>
+      <div class="group">
+        <h2>Screen</h2>
+        <div class="seg" id="mode">
+          <button type="button" id="mode-active" data-v="active" aria-pressed="true">Active</button>
+          <button type="button" id="mode-aod" data-v="aod" aria-pressed="false">Always on</button>
+        </div>
+      </div>
+
+      <div class="group">
+        <h2>Scenario</h2>
+        <div class="seg" id="scenario">
+          <button type="button" id="sc-today" data-v="today" aria-pressed="true">Today</button>
+          <button type="button" id="sc-calm" data-v="calm" aria-pressed="false">Quiet week</button>
+          <button type="button" id="sc-offline" data-v="offline" aria-pressed="false">Offline 2 h</button>
+        </div>
+      </div>
+
+      <div class="group">
+        <h2>Providers in the JSON</h2>
+        <div class="range-row">
+          <input type="range" id="count" min="1" max="8" value="5" aria-label="Number of providers">
+          <output id="count-out" for="count">5</output>
+        </div>
+      </div>
+
+      <div class="meter" aria-live="polite">
+        <div class="meter-top">
+          <span class="eyebrow">Lit pixels</span>
+          <span class="chip info" id="px-chip">measuring</span>
+        </div>
+        <span class="meter-value" id="px-value">–</span>
+        <div class="bar"><span id="px-bar" style="width:0%"></span><i title="AOD limit: 10 %"></i></div>
+        <small id="px-note">In always-on mode Connect IQ only allows 10 % of the pixels to be lit. The red mark on the bar is that limit (the bar goes up to 20 %).</small>
+      </div>
+
+      <div class="group">
+        <h2>How to read it</h2>
+        <ul class="notes">
+          <li><span class="swatch" style="background:var(--ok)"></span><p><b>Outer arc:</b> the percentage left in each provider's most-used window. At 100 % the arc is full, and it empties as you go. The order is fixed, so each provider is always in the same place.</p></li>
+          <li><span class="swatch" style="background:var(--ink);width:3px;height:16px;margin:4px 0 0 9px"></span><p><b>White notch:</b> the pace CodexBar calculates, that is, where you would be if you used the quota at a steady rate until the reset. If the arc does not reach the notch, you are using it faster than it lasts. It only appears for providers that report this (today, Codex and Claude).</p></li>
+          <li><span class="swatch" style="background:#9aa0a8;height:3px;margin-top:10px"></span><p><b>Thin inner line:</b> what is left in the provider's second window (for example, 5 h versus weekly).</p></li>
+          <li><span class="swatch" style="background:var(--crit)"></span><p><b>Lines under the time:</b> they only appear when there is something to watch, that is, a quota with 40 % or less left or one that will run out before its reset. At most two are shown, with what is left and the time until the reset (↻15h). Those that run out first go on top, in red, with <i>out in 3d</i>. If everything is fine, it just reads <i>all quotas OK</i>.</p></li>
+          <li><span class="swatch" style="background:var(--warn)"></span><p><b>Footer:</b> when the latest data arrived. With no connection the values are kept and the notice turns amber; a quota whose reset has already passed is drawn dotted instead of dropping to zero.</p></li>
+        </ul>
+        <div class="legend-scale">
+          <span><i style="background:var(--ok)"></i>left &gt; 40 %</span>
+          <span><i style="background:var(--warn)"></i>16–40 %</span>
+          <span><i style="background:var(--crit)"></i>≤ 15 %</span>
+        </div>
+      </div>
+
+      <div class="group port">
+        <h2>Porting it to Monkey C</h2>
+        <p>The arcs are drawn with <code>dc.drawArc</code> and the curved text with <code>dc.drawRadialText</code> (vector fonts, available on the Epix Pro).</p>
+        <p>Steps, battery and temperature come from <code>ActivityMonitor</code>, <code>System.getSystemStats</code> and <code>Weather</code>. The time's typeface will need converting to a watch font.</p>
+        <p>The watch face does not respond to taps: whatever does not fit on the bezel is grouped, not navigated.</p>
+      </div>
+    </aside>
+  </main>
+</div>
+
+<script>
+(() => {
+  const C = 227;
+  const COL = { ok: "#4CD99A", warn: "#FFB547", crit: "#FF5A4E", steps: "#6EA8FF", ink: "#ECEAE5", muted: "#8E9196", track: "#1F2124", dim: "#5F6268" };
+  const FONT_DATA = "IBM Plex Mono, Menlo, monospace";
+  const FONT_DISPLAY = "Saira Condensed, Arial Narrow, sans-serif";
+  const MIN = 60 * 1000;
+
+  const state = { mode: "active", scenario: "today", count: 5 };
+  const loadedAt = Date.now();
+
+  // Example quotas, shaped like the normalised JSON (u = used %, reset in minutes from page load).
+  const BASE = [
+    // p = CodexBar pace: e = expectedUsedPercent, last = willLastToReset, eta = minutes until it runs out
+    { id: "codex", short: "CODEX", w: [{ l: "WK", u: 99, r: 49, p: { e: 99, last: true } }] },
+    { id: "claude", short: "CLAUDE", w: [{ l: "WK", u: 27, r: 15 * 60 + 18, p: { e: 91, last: true } }, { l: "FABLE", u: 6, r: 15 * 60 + 18 }] },
+    { id: "helmcode", short: "HELM", w: [{ l: "GLM", u: 100, r: 19 * 1440 + 14 * 60 }, { l: "DSV4", u: 14, r: 19 * 1440 + 14 * 60 }] },
+    { id: "opencodego", short: "OC GO", w: [{ l: "5H", u: 0, r: 297 }, { l: "WK", u: 0, r: 4 * 1440 + 14 * 60 }, { l: "MO", u: 0, r: 14 * 1440 + 23 * 60 }] },
+    { id: "antigravity", short: "AGY", w: [{ l: "GEM", u: 0, r: 297 }, { l: "C+G", u: 0, r: 297 }] },
+    { id: "gemini", short: "GEMINI", w: [{ l: "5H", u: 42, r: 131, p: { e: 56, last: true } }, { l: "DAY", u: 18, r: 9 * 60 }] },
+    { id: "copilot", short: "COPILOT", w: [{ l: "MO", u: 63, r: 20 * 1440 }] },
+    { id: "cursor", short: "CURSOR", w: [{ l: "MO", u: 71, r: 12 * 1440, p: { e: 58, last: false, eta: 3 * 1440 + 4 * 60 } }, { l: "5H", u: 35, r: 75 }] },
+  ];
+
+  const SCENARIOS = {
+    today: { syncAge: 3, scale: 1 },
+    calm: { syncAge: 1, scale: 0.25 },
+    offline: { syncAge: 134, scale: 1 },
+  };
+
+  // Colour by what is LEFT of the quota: green while plenty remains, red when nearly gone.
+  const level = (rem) => (rem <= 15 ? COL.crit : rem <= 40 ? COL.warn : COL.ok);
+  const left = (w) => Math.max(0, 100 - w.u);
+  // Windows that will run out before their reset come first.
+  const runsOut = (w) => (w.pace && !w.pace.last ? 0 : 1);
+  // Compact durations for the centre lines: 49m, 15h, 20d.
+  function fmtShort(ms) {
+    const m = Math.max(0, Math.round(ms / MIN));
+    if (m < 60) return `${m}m`;
+    if (m < 48 * 60) return `${Math.round(m / 60)}h`;
+    return `${Math.round(m / 1440)}d`;
+  }
+  // If the quota runs out before its reset, say when; otherwise show time to reset.
+  function shortTail(w, now, plain) {
+    if (w.pace && !w.pace.last) {
+      const t = `out in ${fmtShort((w.pace.eta || 0) * MIN)}`;
+      return plain ? t : `<tspan fill="${COL.crit}">${t}</tspan>`;
+    }
+    return `↻${fmtShort(w.resetAt - now)}`;
+  }
+
+  function polar(r, deg) {
+    const a = (deg * Math.PI) / 180;
+    return [C + r * Math.sin(a), C - r * Math.cos(a)];
+  }
+  function arc(r, a0, a1, reverse = false) {
+    const [x0, y0] = polar(r, a0);
+    const [x1, y1] = polar(r, a1);
+    const large = a1 - a0 > 180 ? 1 : 0;
+    return reverse
+      ? `M${x1.toFixed(2)} ${y1.toFixed(2)} A${r} ${r} 0 ${large} 0 ${x0.toFixed(2)} ${y0.toFixed(2)}`
+      : `M${x0.toFixed(2)} ${y0.toFixed(2)} A${r} ${r} 0 ${large} 1 ${x1.toFixed(2)} ${y1.toFixed(2)}`;
+  }
+  function fmtReset(ms) {
+    const m = Math.max(0, Math.round(ms / MIN));
+    if (m < 60) return `${m} min`;
+    if (m < 48 * 60) return `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, "0")}`;
+    return `${Math.round(m / 1440)} d`;
+  }
+  function fmtAge(min) {
+    if (min < 60) return `${min} min ago`;
+    return `${Math.floor(min / 60)} h ${String(min % 60).padStart(2, "0")} ago`;
+  }
+  const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
+
+  function buildData(now) {
+    const sc = SCENARIOS[state.scenario];
+    // In the offline scenario the data was fetched syncAge minutes ago, so resets are relative to that moment.
+    const fetchedAt = now - sc.syncAge * MIN;
+    const baseAt = state.scenario === "offline" ? loadedAt - sc.syncAge * MIN : loadedAt;
+    return {
+      fetchedAt,
+      syncAge: sc.syncAge,
+      providers: BASE.slice(0, state.count).map((p) => ({
+        ...p,
+        w: p.w
+          .map((w) => {
+            const resetAt = baseAt + w.r * MIN;
+            const u = Math.round(w.u * sc.scale);
+            const pace = w.p ? { e: w.p.e, d: u - w.p.e, last: state.scenario === "calm" ? true : w.p.last, eta: w.p.eta } : null;
+            return { ...w, u, pace, resetAt, expired: resetAt <= now };
+          })
+          .sort((a, b) => b.u - a.u),
+      })),
+    };
+  }
+
+  function render() {
+    const now = Date.now();
+    const d = new Date(now);
+    const data = buildData(now);
+    const aod = state.mode === "aod";
+    const stale = data.syncAge >= 60;
+    const N = data.providers.length;
+    const SPAN = 280, START = -140, GAP = N > 1 ? 4 : 0;
+    const segLen = (SPAN - GAP * (N - 1)) / N;
+    const R1 = 211, R2 = 196, RL = 181;
+    let s = "";
+
+    // Burn-in shift in always-on mode: move the whole layout a few pixels each minute.
+    const shift = aod ? [[0, 0], [3, -2], [-2, 3], [2, 2], [-3, -1]][d.getMinutes() % 5] : [0, 0];
+    s += `<rect width="454" height="454" fill="#000"/>`;
+    s += `<g transform="translate(${shift[0]} ${shift[1]})">`;
+    s += `<defs>`;
+
+    const labels = [];
+    data.providers.forEach((p, i) => {
+      const a0 = START + i * (segLen + GAP);
+      const a1 = a0 + segLen;
+      const mid = (a0 + a1) / 2;
+      const reverse = Math.abs(mid) > 90;
+      s += `<path id="lp${i}" d="${arc(RL, a0, a1, reverse)}"/>`;
+      labels.push({ p, a0, a1, i });
+    });
+    s += `</defs>`;
+
+    labels.forEach(({ p, a0, a1, i }) => {
+      const w1 = p.w[0], w2 = p.w[1];
+      const dimmed = stale ? 0.55 : 1;
+      if (!aod) s += `<path d="${arc(R1, a0, a1)}" stroke="${COL.track}" stroke-width="13" fill="none"/>`;
+      if (w1 && left(w1) > 0) {
+        const end = a0 + segLen * left(w1) / 100;
+        const dash = w1.expired ? ` stroke-dasharray="2 4"` : "";
+        s += `<path d="${arc(R1, a0, end)}" stroke="${level(left(w1))}" stroke-width="${aod ? 3 : 13}" fill="none" opacity="${aod ? 0.7 : (w1.expired ? 0.5 : dimmed)}"${dash}/>`;
+      }
+      // Pace notch: where usage would be at a constant rate until the reset (CodexBar's expectedUsedPercent)
+      if (w1 && w1.pace && !w1.expired) {
+        const at = a0 + segLen * Math.max(0, 100 - w1.pace.e) / 100;
+        const [xi, yi] = polar(aod ? 206 : 202, at);
+        const [xo, yo] = polar(aod ? 216 : 220, at);
+        s += `<line x1="${xi.toFixed(2)}" y1="${yi.toFixed(2)}" x2="${xo.toFixed(2)}" y2="${yo.toFixed(2)}" stroke="${aod ? COL.dim : COL.ink}" stroke-width="2.5" stroke-linecap="round"/>`;
+      }
+      if (w2 && !aod) {
+        s += `<path d="${arc(R2, a0, a1)}" stroke="${COL.track}" stroke-width="4" fill="none"/>`;
+        if (left(w2) > 0) {
+          const end2 = a0 + segLen * left(w2) / 100;
+          s += `<path d="${arc(R2, a0, end2)}" stroke="${level(left(w2))}" stroke-width="4" fill="none" opacity="${0.75 * dimmed}"/>`;
+        }
+      }
+      if (!aod) {
+        const val = w1 ? (w1.expired ? "↺" : `${left(w1)}`) : "–";
+        const vcol = w1 && !w1.expired ? level(left(w1)) : COL.muted;
+        s += `<text font-family="${FONT_DATA}" font-size="12" font-weight="500" letter-spacing="0.6" dominant-baseline="central">` +
+             `<textPath href="#lp${i}" startOffset="50%" text-anchor="middle">` +
+             `<tspan fill="${COL.muted}">${esc(p.short)} </tspan><tspan fill="${vcol}">${val}</tspan>` +
+             `</textPath></text>`;
+      }
+    });
+
+    // Date
+    const wd = d.toLocaleDateString("en-US", { weekday: "short" }).replace(".", "").toUpperCase();
+    const mo = d.toLocaleDateString("en-US", { month: "short" }).replace(".", "").toUpperCase();
+    const dateStr = `${wd} ${d.getDate()} ${mo}`;
+    const time = `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+
+    s += `<text x="${C}" y="${aod ? 150 : 128}" text-anchor="middle" font-family="${FONT_DATA}" font-size="15" letter-spacing="3" fill="${aod ? COL.dim : COL.muted}">${dateStr}</text>`;
+    s += `<text x="${C}" y="${aod ? 262 : 232}" text-anchor="middle" font-family="${FONT_DISPLAY}" font-weight="${aod ? 300 : 600}" font-size="${aod ? 112 : 118}" fill="${aod ? "#B9BBBF" : COL.ink}" letter-spacing="1">${time}</text>`;
+
+    const critical = data.providers
+      .flatMap((p) => p.w.filter((w) => !w.expired).map((w) => ({ p, w })))
+      // Only quotas worth watching: they run out before the reset, or 40 % or less remains.
+      .filter(({ w }) => runsOut(w) === 0 || left(w) <= 40)
+      .sort((a, b) => runsOut(a.w) - runsOut(b.w) || b.w.u - a.w.u || a.w.resetAt - b.w.resetAt);
+
+    if (!aod) {
+      // Complications: steps, temperature (position within today's min–max), battery
+      const gauges = [
+        { x: 104, frac: 7842 / 10000, color: COL.steps, label: "STEP", value: "7,842" },
+        { x: 202, frac: (14 - 9) / (18 - 9), color: COL.warn, label: "°C", value: "14°", dot: true },
+        { x: 290, frac: 0.82, color: COL.ink, label: "BAT", value: "82%" },
+      ];
+      gauges.forEach((g) => {
+        const cy = 274, r = 15;
+        const a0 = -135, a1 = 135;
+        const end = a0 + (a1 - a0) * g.frac;
+        const p = (deg) => { const a = deg * Math.PI / 180; return [g.x + r * Math.sin(a), cy - r * Math.cos(a)]; };
+        const pa = (from, to) => { const [x0, y0] = p(from), [x1, y1] = p(to); return `M${x0.toFixed(2)} ${y0.toFixed(2)} A${r} ${r} 0 ${to - from > 180 ? 1 : 0} 1 ${x1.toFixed(2)} ${y1.toFixed(2)}`; };
+        s += `<path d="${pa(a0, a1)}" stroke="${COL.track}" stroke-width="3" fill="none" stroke-linecap="round"/>`;
+        if (g.dot) {
+          const [dx, dy] = p(end);
+          s += `<circle cx="${dx.toFixed(2)}" cy="${dy.toFixed(2)}" r="3.5" fill="${g.color}"/>`;
+        } else {
+          s += `<path d="${pa(a0, end)}" stroke="${g.color}" stroke-width="3" fill="none" stroke-linecap="round"/>`;
+        }
+        s += `<text x="${g.x}" y="${cy + 3.5}" text-anchor="middle" font-family="${FONT_DATA}" font-size="9" fill="${COL.muted}">${g.label}</text>`;
+        s += `<text x="${g.x + 22}" y="${cy + 6}" font-family="${FONT_DATA}" font-size="16" font-weight="500" fill="${COL.ink}">${g.value}</text>`;
+      });
+
+      // Up to two critical quotas; a quiet note when there is nothing to watch
+      if (!critical.length) {
+        s += `<text x="${C}" y="333" text-anchor="middle" font-family="${FONT_DATA}" font-size="13" letter-spacing="1" fill="${COL.dim}">all quotas OK</text>`;
+      }
+      critical.slice(0, 2).forEach(({ p, w }, k) => {
+        const y = 322 + k * 23;
+        s += `<text x="${C}" y="${y}" text-anchor="middle" font-family="${FONT_DATA}" font-size="15" fill="${COL.muted}">` +
+             `<tspan fill="${COL.ink}">${esc(p.short)}</tspan> ${esc(w.l)} <tspan fill="${level(left(w))}" font-weight="500">${left(w)}%</tspan> ${shortTail(w, now)}</text>`;
+      });
+    } else if (critical[0]) {
+      const { p, w } = critical[0];
+      s += `<text x="${C}" y="312" text-anchor="middle" font-family="${FONT_DATA}" font-size="14" fill="${COL.dim}">${esc(p.short)} ${left(w)}% ${shortTail(w, now, true)}</text>`;
+    }
+
+    // Sync status in the bottom gap of the bezel
+    if (!aod) {
+      const syncCol = stale ? COL.warn : COL.muted;
+      const syncTxt = stale ? `no phone · data ${fmtAge(data.syncAge)}` : `updated ${fmtAge(data.syncAge)}`;
+      s += `<circle cx="${C - (stale ? 96 : 64)}" cy="404" r="3.5" fill="${stale ? COL.warn : COL.ok}"/>`;
+      s += `<text x="${C + 6}" y="408" text-anchor="middle" font-family="${FONT_DATA}" font-size="12" fill="${syncCol}">${syncTxt}</text>`;
+    } else if (stale) {
+      s += `<text x="${C}" y="380" text-anchor="middle" font-family="${FONT_DATA}" font-size="12" fill="${COL.dim}">no phone</text>`;
+    }
+
+    s += `</g>`;
+    document.getElementById("face").innerHTML = s;
+    measure();
+  }
+
+  // Count lit pixels by rasterising the SVG (fonts fall back inside the image, so this is an estimate).
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = 454;
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  let measureToken = 0;
+  async function measure() {
+    const token = ++measureToken;
+    try {
+      const svg = new XMLSerializer().serializeToString(document.getElementById("face"));
+      const img = new Image();
+      img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+      await img.decode();
+      if (token !== measureToken) return;
+      ctx.fillStyle = "#000";
+      ctx.fillRect(0, 0, 454, 454);
+      ctx.drawImage(img, 0, 0, 454, 454);
+      const px = ctx.getImageData(0, 0, 454, 454).data;
+      let lit = 0, area = 0;
+      for (let y = 0; y < 454; y++) {
+        for (let x = 0; x < 454; x++) {
+          const dx = x - C + 0.5, dy = y - C + 0.5;
+          if (dx * dx + dy * dy > C * C) continue;
+          area++;
+          const i = (y * 454 + x) * 4;
+          if (Math.max(px[i], px[i + 1], px[i + 2]) > 24) lit++;
+        }
+      }
+      showMeasure((lit / area) * 100);
+    } catch (e) {
+      showMeasure(null);
+    }
+  }
+  function showMeasure(pct) {
+    const v = document.getElementById("px-value");
+    const chip = document.getElementById("px-chip");
+    const bar = document.getElementById("px-bar");
+    if (pct == null) {
+      v.textContent = "unavailable";
+      chip.className = "chip info"; chip.textContent = "no reading";
+      bar.style.width = "0%";
+      return;
+    }
+    v.textContent = `≈ ${pct.toFixed(1)} %`;
+    bar.style.width = `${Math.min(100, pct * 5)}%`;
+    if (state.mode === "aod") {
+      const ok = pct <= 10;
+      chip.className = `chip ${ok ? "pass" : "fail"}`;
+      chip.textContent = ok ? "within AOD limit" : "over AOD limit";
+    } else {
+      chip.className = "chip info";
+      chip.textContent = "active mode, no limit";
+    }
+  }
+
+  function bindSeg(id, key) {
+    const root = document.getElementById(id);
+    root.addEventListener("click", (e) => {
+      const b = e.target.closest("button");
+      if (!b) return;
+      state[key] = b.dataset.v;
+      root.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+      render();
+    });
+  }
+  bindSeg("mode", "mode");
+  bindSeg("scenario", "scenario");
+  const range = document.getElementById("count");
+  range.addEventListener("input", () => {
+    state.count = Number(range.value);
+    document.getElementById("count-out").textContent = range.value;
+    render();
+  });
+
+  render();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(render);
+  // Redraw once per minute, like the watch does.
+  setTimeout(() => { render(); setInterval(render, 60 * 1000); }, (60 - new Date().getSeconds()) * 1000 + 50);
+})();
+</script>

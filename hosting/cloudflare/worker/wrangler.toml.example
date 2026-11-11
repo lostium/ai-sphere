@@ -1,0 +1,8 @@
+# Copy to wrangler.toml (ignored by git), fill in the KV namespace id, then `pnpm dlx wrangler deploy`.
+name = "ai-sphere"                       # the URL will be https://ai-sphere.<your-subdomain>.workers.dev
+main = "worker.js"
+compatibility_date = "2026-10-01"
+
+[[kv_namespaces]]
+binding = "AISPHERE"
+id = "<id from: pnpm dlx wrangler kv namespace create AISPHERE>"

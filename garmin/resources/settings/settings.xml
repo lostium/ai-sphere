@@ -1,0 +1,11 @@
+<settings>
+    <setting propertyKey="@Properties.dataUrl" title="@Strings.DataUrlTitle">
+        <settingConfig type="alphaNumeric"/>
+    </setting>
+    <setting propertyKey="@Properties.accessKey" title="@Strings.AccessKeyTitle">
+        <settingConfig type="alphaNumeric"/>
+    </setting>
+    <setting propertyKey="@Properties.refreshMinutes" title="@Strings.RefreshTitle">
+        <settingConfig type="numeric" min="5" max="120"/>
+    </setting>
+</settings>

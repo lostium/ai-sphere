@@ -1,0 +1,13 @@
+{
+  "publicUrl": "https://ais-RANDOM-NAME.example.com/usage.json",
+  "watchKey": "keychain:ai-sphere-watch-key",
+  "target": {
+    "type": "s3",
+    "endpoint": "https://ACCOUNT_ID.r2.cloudflarestorage.com",
+    "region": "auto",
+    "bucket": "ai-sphere",
+    "key": "usage.json",
+    "accessKeyId": "keychain:ai-sphere-r2-access-key-id",
+    "secretAccessKey": "keychain:ai-sphere-r2-secret-access-key"
+  }
+}

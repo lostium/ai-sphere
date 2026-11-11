@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.pyc
+
+# Garmin: builds carry the CDN URL and X-Key; the developer key never goes in the repo
+garmin/build/
+garmin/bin/
+*.der
+
+# macOS
+.DS_Store
+
+# Local secrets or exported CodexBar output, just in case
+*.secret
+codexbar-raw*.json
+
+# Personal notes and history (Spanish docs, account ids)
+CLAUDE.local.md
+local/
+
+# Cloudflare Worker deploy config (has your KV id)
+hosting/cloudflare/worker/wrangler.toml
+.wrangler/

@@ -1,0 +1,28 @@
+<strings>
+    <string id="AppName">AI Sphere</string>
+
+    <!-- Settings -->
+    <string id="DataUrlTitle">JSON URL</string>
+    <string id="AccessKeyTitle">X-Key value</string>
+    <string id="RefreshTitle">Refresh every (minutes)</string>
+
+    <!-- Face. $1$, $2$ are filled in by the code. -->
+    <string id="QuotasOk">all quotas OK</string>
+    <string id="RunsOut">out in $1$</string>
+    <string id="Soon">soon</string>
+    <string id="NoUrl">no data URL set</string>
+    <string id="Waiting">waiting for data</string>
+    <string id="NoData">no data · error $1$</string>
+    <string id="Ago">$1$ ago</string>
+    <string id="NoPhone">no phone</string>
+    <string id="Error">error $1$</string>
+    <string id="DataAge">$1$ · data $2$</string>
+    <string id="MacSilent">Mac not publishing · $1$</string>
+    <string id="Updated">updated $1$</string>
+    <string id="NoNewData">no new data</string>
+    <string id="ThousandsSeparator">,</string>
+    <string id="NeedsHttps">needs HTTPS</string>
+    <string id="NotJson">not JSON</string>
+    <string id="BadKey">X-Key rejected</string>
+    <string id="NotFound">file not found</string>
+</strings>

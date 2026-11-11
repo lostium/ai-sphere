@@ -1,0 +1,13 @@
+{
+  "publicUrl": "https://www.example.com/ais-RANDOM/usage.json",
+  "watchKey": "keychain:ai-sphere-watch-key",
+  "target": {
+    "type": "ftp",
+    "host": "ftp.example.com",
+    "port": 21,
+    "user": "deploy",
+    "password": "keychain:ai-sphere-ftp-password",
+    "path": "public_html/ais-RANDOM/usage.json",
+    "tls": true
+  }
+}

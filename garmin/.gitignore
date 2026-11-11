@@ -1,0 +1,4 @@
+# Generated: build/resources/properties.xml carries the endpoint and access key.
+build/
+bin/
+*.der

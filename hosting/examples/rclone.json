@@ -1,0 +1,11 @@
+{
+  "publicUrl": "https://ais-RANDOM-NAME.example.com/usage.json",
+  "watchKey": "keychain:ai-sphere-watch-key",
+  "target": {
+    "type": "command",
+    "command": ["/opt/homebrew/bin/rclone", "copyto", "{file}", "myremote:ai-sphere/usage.json",
+                "--header-upload", "Content-Type: application/json",
+                "--header-upload", "Cache-Control: public, max-age=60"],
+    "timeoutSeconds": 60
+  }
+}

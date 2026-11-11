@@ -1,0 +1,11 @@
+{
+  "publicUrl": "https://as-RANDOM-NAME.b-cdn.net/usage.json",
+  "watchKey": "keychain:ai-sphere-watch-key",
+  "target": {
+    "type": "bunny",
+    "storageZone": "ais-RANDOM",
+    "storageHost": "storage.bunnycdn.com",
+    "path": "usage.json",
+    "password": "keychain:ai-sphere-bunny-storage"
+  }
+}

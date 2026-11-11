@@ -1,0 +1,9 @@
+{
+  "publicUrl": "https://ai-sphere.YOUR-SUBDOMAIN.workers.dev/usage.json",
+  "watchKey": "keychain:ai-sphere-watch-key",
+  "target": {
+    "type": "http",
+    "url": "https://ai-sphere.YOUR-SUBDOMAIN.workers.dev/usage.json",
+    "token": "keychain:ai-sphere-worker-upload-token"
+  }
+}
