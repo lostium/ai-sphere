@@ -4,6 +4,12 @@ A Garmin watch face that shows how much is left of your AI coding quotas (Codex,
 
 Built for the **Epix Pro (Gen 2) 51 mm** (454 × 454 AMOLED). The layout scales with the screen, so other round Connect IQ 5 watches should only need to be added to `garmin/manifest.xml`.
 
+<p align="center">
+  <img src="docs/watch-face.png" width="420" alt="AI Sphere on an Epix Pro (Gen 2) 51 mm in the Connect IQ simulator: four provider arcs (Claude 62 %, Antigravity, HelmCode and Codex at 100 %) around the battery, date, time, steps and temperature, with the Lostium logo because no quota needs attention, and 'updated 2 min ago' at the bottom.">
+  <br>
+  <sub>Connect IQ simulator, active mode. Every quota is above 40 %, so the Lostium logo replaces the critical lines.</sub>
+</p>
+
 ## How it works
 
 ```
