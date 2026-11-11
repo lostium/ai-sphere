@@ -107,6 +107,10 @@ tools/check-private.sh                                 # before pushing: no pers
 
 A personal project, in daily use on one watch. It is not on the Connect IQ Store; you install it from source with your own developer key.
 
+## Made by Lostium
+
+AI Sphere is built and maintained by [Lostium](https://lostium.com), a software studio that designs and builds apps, web products and wearable experiences like this one. If you want something similar for your product or team (a watch face, a companion app, a dashboard for your own data), [get in touch](https://lostium.com).
+
 ## Disclaimer
 
 AI Sphere is an independent personal project, provided as is, without warranty. It is not affiliated with or endorsed by Garmin, CodexBar, Bunny.net, Cloudflare or any AI provider; all trademarks belong to their owners. Quota figures may be delayed or inaccurate, so do not use them for billing decisions. Some integrations rely on unofficial endpoints, and you are responsible for complying with each provider's terms and for the security and cost of your own hosting. Read the full [disclaimer](DISCLAIMER.md).
