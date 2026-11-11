@@ -1,6 +1,6 @@
 # Watch face (Garmin Connect IQ)
 
-Watch face for the **Epix Pro (Gen 2) 51 mm** (`epix2pro51mm`, 454 × 454 AMOLED, Connect IQ 5.2). SDK 9.3.0, `minApiLevel` 3.2.0. It reads the `usage.json` published on the CDN (format in [`docs/json-contract.md`](../docs/json-contract.md)) and draws what is left of each quota. The design comes from the prototype in [`prototype/index.html`](../prototype/index.html); the reasoning behind it is in [`docs/design.md`](../docs/design.md).
+Watch face for the **Epix Pro (Gen 2) 51 mm** (`epix2pro51mm`, 454 × 454 AMOLED, Connect IQ 5.2). SDK 9.3.0, `minApiLevel` 3.2.0. This is the only device it has been tested on; whether it works the same on other watches is unknown. It reads the `usage.json` published on the CDN (format in [`docs/json-contract.md`](../docs/json-contract.md)) and draws what is left of each quota. The design comes from the prototype in [`prototype/index.html`](../prototype/index.html); the reasoning behind it is in [`docs/design.md`](../docs/design.md).
 
 ## What it shows
 
@@ -57,7 +57,7 @@ The application id in `manifest.xml` identifies the app on the watch. If you for
 cd garmin
 scripts/build.sh            # personal build: embeds the CDN URL and X-Key
 scripts/build.sh release    # empty URL and key (for a store build, set from Garmin Connect)
-DEVICE=epix2pro47mm scripts/build.sh   # another device (it must be listed in manifest.xml)
+DEVICE=epix2pro47mm scripts/build.sh   # another device (it must be listed in manifest.xml; untested)
 ```
 
 The URL (`publicUrl`) and the key reference (`watchKey`) come from the publisher's config, `~/.config/ai-sphere/publish.json` (see `hosting/README.md`); the build refuses non-HTTPS URLs. Output: `bin/AISphere.prg`.

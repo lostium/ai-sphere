@@ -2,7 +2,7 @@
 
 A Garmin watch face that shows how much is left of your AI coding quotas (Codex, Claude, Antigravity, HelmCode… anything [CodexBar](https://github.com/steipete/CodexBar) tracks), right on your wrist.
 
-Built for the **Epix Pro (Gen 2) 51 mm** (454 × 454 AMOLED). The layout scales with the screen, so other round Connect IQ 5 watches should only need to be added to `garmin/manifest.xml`.
+Built for and tested on the **Epix Pro (Gen 2) 51 mm** (454 × 454 AMOLED), the only supported device. It has not been tried on any other watch, so it is unknown whether it works the same elsewhere. The layout scales with the screen, so other round Connect IQ 5 watches could be added to `garmin/manifest.xml`, but at your own risk.
 
 <p align="center">
   <img src="docs/watch-face.png" width="420" alt="AI Sphere on an Epix Pro (Gen 2) 51 mm in the Connect IQ simulator: four provider arcs (Claude 62 %, Antigravity, HelmCode and Codex at 100 %) around the battery, date, time, steps and temperature, with the Lostium logo because no quota needs attention, and 'updated 2 min ago' at the bottom.">
@@ -64,7 +64,7 @@ Design rationale and platform limits: [`docs/design.md`](docs/design.md).
 | The [Connect IQ SDK](https://developer.garmin.com/connect-iq/sdk/) via the SDK Manager, with the **Epix Pro (Gen 2) 51 mm** device downloaded | Compiles the watch face. | SDK 9.3.0 |
 | A Java runtime (JDK/JRE 8 or later) | The SDK's compiler (`monkeyc`) and simulator need it. | OpenJDK |
 | A Connect IQ developer key | Signs the build; generated once with `openssl` (included in macOS), see [`garmin/README.md`](garmin/README.md#developer-key-and-app-id). | — |
-| A compatible Garmin watch paired with a phone running **Garmin Connect**, with Bluetooth and internet on the phone | The watch has no internet of its own: it downloads the JSON through the phone in the background. | Epix Pro (Gen 2) 51 mm with an iPhone (Android untested) |
+| A Garmin **Epix Pro (Gen 2) 51 mm** (the only tested device) paired with a phone running **Garmin Connect**, with Bluetooth and internet on the phone | The watch has no internet of its own: it downloads the JSON through the phone in the background. | Epix Pro (Gen 2) 51 mm with an iPhone (Android untested) |
 | A USB cable and `brew install libmtp` | Installs the build on the watch (it is not on the Connect IQ Store). | libmtp 1.1.23 |
 
 ### Optional
