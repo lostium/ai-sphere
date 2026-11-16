@@ -129,7 +129,8 @@ module FaceModel {
         }
         q.paceKnown = true;
         q.paceExpected = (elapsed * 100 / total).toNumber();
-        if (used <= 0 || used.toLong() * total <= elapsed * 100) {
+        // Already empty: nothing left to run out (red by color()); the line shows the reset instead.
+        if (used <= 0 || used >= 100 || used.toLong() * total <= elapsed * 100) {
             return;
         }
         q.lasts = false;
