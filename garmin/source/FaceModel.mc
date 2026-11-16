@@ -6,9 +6,11 @@ class Quota {
     var label as String = "";
     var left as Number = 0;
     var reset as Number or Null = null;   // epoch seconds
-    var paceExpected as Number or Null = null; // CodexBar expectedUsedPercent
-    var lasts as Boolean = true;          // CodexBar willLastToReset (true when unknown)
-    var eta as Number or Null = null;     // seconds until it runs out, when it will not last
+    var toReset as Number or Null = null; // seconds from now until the reset
+    var paceExpected as Number or Null = null; // expected used % at a steady rate (CodexBar or elapsed time)
+    var paceKnown as Boolean = false;     // lasts/eta come from CodexBar or an estimate
+    var lasts as Boolean = true;          // will last to the reset (true when unknown)
+    var eta as Number or Null = null;     // seconds from now until it runs out, when it will not last
     var expired as Boolean = false;       // reset already passed: the value is out of date
 
     function initialize() {
@@ -21,6 +23,23 @@ class Quota {
     //! Worth showing under the time: runs out before the reset, or 40 % or less remains.
     function isCritical() as Boolean {
         return !expired && (runsOut() || left <= 40);
+    }
+
+    //! Colour by pace (docs/design.md): empty is red; without pace, by what is left.
+    function color() as Number {
+        if (left == 0) {
+            return Theme.CRIT;
+        }
+        if (expired || !paceKnown) {
+            return Theme.level(left);
+        }
+        if (lasts) {
+            return Theme.OK;
+        }
+        if (eta == null || toReset == null) {
+            return Theme.WARN;
+        }
+        return Theme.pace(eta as Number, toReset as Number);
     }
 }
 
@@ -47,10 +66,11 @@ module FaceModel {
             var model = new ProviderModel();
             model.name = p["n"] instanceof String ? p["n"] as String : "?";
             model.stale = p["err"] != null;
+            var generated = QuotaStore.generatedAt();
             var windows = p["w"];
             if (windows instanceof Array) {
                 for (var j = 0; j < windows.size(); j++) {
-                    var q = quota(windows[j], model.name, now);
+                    var q = quota(windows[j], model.name, now, generated);
                     if (q != null) {
                         model.quotas.add(q);
                     }
@@ -63,7 +83,8 @@ module FaceModel {
         return out;
     }
 
-    function quota(w, providerName as String, now as Number) as Quota or Null {
+    //! `generated` is the payload's time (`t`): CodexBar's eta is aged by how old the payload is.
+    function quota(w, providerName as String, now as Number, generated as Number or Null) as Quota or Null {
         if (!(w instanceof Dictionary) || !(w["u"] instanceof Number)) {
             return null;
         }
@@ -74,19 +95,45 @@ module FaceModel {
         q.left = used >= 100 ? 0 : (used <= 0 ? 100 : 100 - used);
         q.reset = QuotaStore.parseIso(w["r"]);
         q.expired = q.reset != null && (q.reset as Number) <= now;
+        if (q.reset != null) {
+            q.toReset = (q.reset as Number) - now;
+        }
         var pc = w["pc"];
-        if (pc instanceof Dictionary) {
+        if (pc instanceof Dictionary && pc["ok"] instanceof Boolean) {
+            q.paceKnown = true;
+            q.lasts = pc["ok"] as Boolean;
             if (pc["e"] instanceof Number) {
                 q.paceExpected = pc["e"] as Number;
             }
-            if (pc["ok"] instanceof Boolean) {
-                q.lasts = pc["ok"] as Boolean;
-            }
             if (pc["eta"] instanceof Number) {
-                q.eta = pc["eta"] as Number;
+                var age = generated != null && now > (generated as Number) ? now - (generated as Number) : 0;
+                var eta = (pc["eta"] as Number) - age;
+                q.eta = eta > 0 ? eta : 0;
             }
+        } else if (!q.expired) {
+            estimate(q, used, w["m"], now);
         }
         return q;
+    }
+
+    //! Pace from usage alone, assuming a steady rate since the window started. Skipped (colour by
+    //! what is left) without a length or reset, or in the first 10 % of the window.
+    function estimate(q as Quota, used as Number, minutes, now as Number) as Void {
+        if (!(minutes instanceof Number) || (minutes as Number) <= 0 || q.toReset == null) {
+            return;
+        }
+        var total = (minutes as Number).toLong() * 60;
+        var elapsed = total - (q.toReset as Number).toLong();
+        if (elapsed * 10 < total) {
+            return;
+        }
+        q.paceKnown = true;
+        q.paceExpected = (elapsed * 100 / total).toNumber();
+        if (used <= 0 || used.toLong() * total <= elapsed * 100) {
+            return;
+        }
+        q.lasts = false;
+        q.eta = ((100 - used).toLong() * elapsed / used).toNumber();
     }
 
     //! Up to `limit` critical quotas: the ones that run out first, then least remaining, then soonest reset.
