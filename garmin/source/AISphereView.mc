@@ -173,7 +173,7 @@ class AISphereView extends WatchUi.WatchFace {
             dc.setColor(Theme.TRACK, Graphics.COLOR_TRANSPARENT);
             Geo.arc(dc, cx, cy, sc(R1), a0, a1);
             if (q1.left > 0) {
-                var color = Theme.level(q1.left);
+                var color = q1.color();
                 dc.setColor(faded || q1.expired ? Theme.dim(color) : color, Graphics.COLOR_TRANSPARENT);
                 var end = a0 + seg * q1.left / 100.0;
                 if (q1.expired) {
@@ -199,14 +199,14 @@ class AISphereView extends WatchUi.WatchFace {
                 dc.setColor(Theme.TRACK, Graphics.COLOR_TRANSPARENT);
                 Geo.arc(dc, cx, cy, sc(R2), a0, a1);
                 if (q2.left > 0 && !q2.expired) {
-                    var c2 = Theme.level(q2.left);
+                    var c2 = q2.color();
                     dc.setColor(faded ? Theme.dim(c2) : c2, Graphics.COLOR_TRANSPARENT);
                     Geo.arc(dc, cx, cy, sc(R2), a0, a0 + seg * q2.left / 100.0);
                 }
             }
 
             var value = q1.expired ? "--" : q1.left.format("%d");
-            drawLabel(dc, cx, cy, p.name + " ", value, q1.expired ? Theme.MUTED : Theme.level(q1.left), (a0 + a1) / 2);
+            drawLabel(dc, cx, cy, p.name + " ", value, q1.expired ? Theme.MUTED : q1.color(), (a0 + a1) / 2);
         }
     }
 
@@ -318,7 +318,7 @@ class AISphereView extends WatchUi.WatchFace {
         var parts = [q.provider, " " + q.label + " ", q.left.format("%d") + "%", " "] as Array<String>;
         var colors = alwaysOn
             ? [Theme.DIM, Theme.DIM, Theme.DIM, Theme.DIM] as Array<Number>
-            : [Theme.TEXT, Theme.MUTED, Theme.level(q.left), Theme.MUTED] as Array<Number>;
+            : [Theme.TEXT, Theme.MUTED, q.color(), Theme.MUTED] as Array<Number>;
         var tail = "";
         var tailColor = alwaysOn ? Theme.DIM : Theme.MUTED;
         var icon = false;
@@ -436,7 +436,7 @@ class AISphereView extends WatchUi.WatchFace {
                 var q1 = providers[i].quotas[0];
                 var a0 = START + i * (seg + gap);
                 if (q1.left > 0 && !q1.expired) {
-                    dc.setColor(Theme.dim(Theme.level(q1.left)), Graphics.COLOR_TRANSPARENT);
+                    dc.setColor(Theme.dim(q1.color()), Graphics.COLOR_TRANSPARENT);
                     Geo.arc(dc, x, y, sc(R1), a0, a0 + seg * q1.left / 100.0);
                 }
                 if (q1.paceExpected != null && !q1.expired) {

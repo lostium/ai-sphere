@@ -35,12 +35,15 @@ Things that could not be confirmed from the documentation and depend on the real
 ## Watch face
 
 - **Bezel:** one arc per provider over 280°, with the gap at the bottom for the sync status, in the JSON's fixed order so each provider always sits in the same place. Each arc shows the percentage **left** (100 − used) of its most used window: full and green at 100 %, shrinking as it is used.
-- **Colours by what is left:** green above 40 %, amber 16–40 %, red 15 % or less.
+- **Colours by pace** (since November 2026, replacing colours by what is left): each quota compares when it would run out at the current rate with when it resets. Lasts to the reset → green; runs out with 80 % or more of the time left → amber; sooner → red (resets in 5 days: out in 4.5 → amber, out in 3 → red). Pace only: a quota that lasts is green even when nearly empty, because the arc length already shows what is left; 0 % left is always red.
+  - Codex and Claude use CodexBar's `pace` (`ok`, `eta`); the watch subtracts the payload's age (`now − t`, never negative) from `eta`. `ok: false` without `eta` is amber.
+  - Other providers are estimated on the watch from `u`, `m` and `r`, assuming a steady rate since the window started. No estimate (and colour by what is left: green above 40 %, amber 16–40 %, red 15 % or less) without `m` or `r`, when the reset is further away than the window length, or in the first 10 % of the window, where a few minutes of use would be extrapolated over the whole window. 0 % used is green.
+  - Estimated on the watch rather than in the publisher: the colour keeps up as the reset approaches even when the Mac is offline, and the JSON contract stays unchanged.
 - **Thin inner line:** what is left of the provider's second window.
-- **Pace tick:** a radial mark at `100 − pace.expectedUsedPercent`. If the arc does not reach the tick, you are using the quota faster than it lasts. Drawn only when CodexBar gives `pace`; it is never estimated for other providers.
+- **Pace tick:** a radial mark at `100 − pace.expectedUsedPercent`. If the arc does not reach the tick, you are using the quota faster than it lasts. From CodexBar's `expectedUsedPercent` when it gives `pace`; otherwise at the elapsed share of the window (`m`, `r`), which is a fact, not an estimate. Not drawn when the window has no length or reset.
 - **Providers with many quotas** (Antigravity has five): still one arc. The arc shows the most used window and the inner line the second one. Critical lines use short labels that name the group: `GEM 5H`, `GEM WK`, `C/G 5H`, `C/G WK`, `ARGON`.
 - **Centre:** battery with an icon at the top, date, large time, steps and temperature with icons.
-- **Critical lines:** at most two short lines under the time, such as `CODEX WK 1% ↻49m`. They appear only when a quota has 40 % or less left or will run out before its reset; otherwise the Lostium logo, in its own orange and white, sits in their place. A quota that will run out goes first, in red, with `out in 3d` instead of the reset time.
+- **Critical lines:** at most two short lines under the time, such as `CODEX WK 1% ↻49m`. They appear only when a quota has 40 % or less left or will run out before its reset; otherwise the Lostium logo, in its own orange and white, sits in their place. A quota that will run out (by CodexBar's pace or the watch's estimate) goes first, in red, with `out in 3d` instead of the reset time.
 - **Offline:** the last values stay (never zeros), the footer turns amber, and a window whose reset has already passed is drawn dotted.
 - **Always-on:** thin time, 3 px arcs without track, one critical line, and a shift of a few pixels every minute.
 - No animations; one redraw per minute.
