@@ -155,7 +155,7 @@ code { font-family: var(--font-data); font-size: 13px; color: var(--ink); }
   <header>
     <span class="eyebrow">Prototype · Epix Pro (Gen 2) 51 mm · 454 × 454 px</span>
     <h1>AI Sphere</h1>
-    <p>The bezel is shared among your AI providers. Each arc shows what is left of its most-used quota: full and green at the start, it shrinks and turns red as you use it up. In the centre, the time and the day's basics.</p>
+    <p>The bezel is shared among your AI providers. Each arc shows what is left of its most-used quota, and its colour says whether you are on pace to make it to the reset: green if you are, red if it will run out well before. In the centre, the time and the day's basics.</p>
   </header>
 
   <main>
@@ -205,16 +205,16 @@ code { font-family: var(--font-data); font-size: 13px; color: var(--ink); }
       <div class="group">
         <h2>How to read it</h2>
         <ul class="notes">
-          <li><span class="swatch" style="background:var(--ok)"></span><p><b>Outer arc:</b> the percentage left in each provider's most-used window. At 100 % the arc is full, and it empties as you go. The order is fixed, so each provider is always in the same place.</p></li>
-          <li><span class="swatch" style="background:var(--ink);width:3px;height:16px;margin:4px 0 0 9px"></span><p><b>White notch:</b> the pace CodexBar calculates, that is, where you would be if you used the quota at a steady rate until the reset. If the arc does not reach the notch, you are using it faster than it lasts. It only appears for providers that report this (today, Codex and Claude).</p></li>
+          <li><span class="swatch" style="background:var(--ok)"></span><p><b>Outer arc:</b> the percentage left in each provider's most-used window. At 100 % the arc is full, and it empties as you go. Its colour is the pace: green if it lasts until the reset, amber if it runs out shortly before, red if well before. The order is fixed, so each provider is always in the same place.</p></li>
+          <li><span class="swatch" style="background:var(--ink);width:3px;height:16px;margin:4px 0 0 9px"></span><p><b>White notch:</b> where you would be if you used the quota at a steady rate until the reset. If the arc does not reach the notch, you are using it faster than it lasts. Codex and Claude take it from CodexBar; the rest from how much of the window has gone by.</p></li>
           <li><span class="swatch" style="background:#9aa0a8;height:3px;margin-top:10px"></span><p><b>Thin inner line:</b> what is left in the provider's second window (for example, 5 h versus weekly).</p></li>
           <li><span class="swatch" style="background:var(--crit)"></span><p><b>Lines under the time:</b> they only appear when there is something to watch, that is, a quota with 40 % or less left or one that will run out before its reset. At most two are shown, with what is left and the time until the reset (↻15h). Those that run out first go on top, in red, with <i>out in 3d</i>. If everything is fine, the Lostium logo takes their place.</p></li>
           <li><span class="swatch" style="background:var(--warn)"></span><p><b>Footer:</b> when the latest data arrived. With no connection the values are kept and the notice turns amber; a quota whose reset has already passed is drawn dotted instead of dropping to zero.</p></li>
         </ul>
         <div class="legend-scale">
-          <span><i style="background:var(--ok)"></i>left &gt; 40 %</span>
-          <span><i style="background:var(--warn)"></i>16–40 %</span>
-          <span><i style="background:var(--crit)"></i>≤ 15 %</span>
+          <span><i style="background:var(--ok)"></i>lasts to the reset</span>
+          <span><i style="background:var(--warn)"></i>out with ≥ 80 % of the time left</span>
+          <span><i style="background:var(--crit)"></i>out sooner</span>
         </div>
       </div>
 
@@ -241,15 +241,16 @@ code { font-family: var(--font-data); font-size: 13px; color: var(--ink); }
 
   // Example quotas, shaped like the normalised JSON (u = used %, reset in minutes from page load).
   const BASE = [
-    // p = CodexBar pace: e = expectedUsedPercent, last = willLastToReset, eta = minutes until it runs out
-    { id: "codex", short: "CODEX", w: [{ l: "WK", u: 99, r: 49, p: { e: 99, last: true } }] },
-    { id: "claude", short: "CLAUDE", w: [{ l: "WK", u: 27, r: 15 * 60 + 18, p: { e: 91, last: true } }, { l: "FABLE", u: 6, r: 15 * 60 + 18 }] },
-    { id: "helmcode", short: "HELM", w: [{ l: "GLM", u: 100, r: 19 * 1440 + 14 * 60 }, { l: "DSV4", u: 14, r: 19 * 1440 + 14 * 60 }] },
-    { id: "opencodego", short: "OC GO", w: [{ l: "5H", u: 0, r: 297 }, { l: "WK", u: 0, r: 4 * 1440 + 14 * 60 }, { l: "MO", u: 0, r: 14 * 1440 + 23 * 60 }] },
-    { id: "antigravity", short: "AGY", w: [{ l: "GEM", u: 0, r: 297 }, { l: "C+G", u: 0, r: 297 }] },
-    { id: "gemini", short: "GEMINI", w: [{ l: "5H", u: 42, r: 131, p: { e: 56, last: true } }, { l: "DAY", u: 18, r: 9 * 60 }] },
-    { id: "copilot", short: "COPILOT", w: [{ l: "MO", u: 63, r: 20 * 1440 }] },
-    { id: "cursor", short: "CURSOR", w: [{ l: "MO", u: 71, r: 12 * 1440, p: { e: 58, last: false, eta: 3 * 1440 + 4 * 60 } }, { l: "5H", u: 35, r: 75 }] },
+    // m = window minutes. p = CodexBar pace: e = expectedUsedPercent, last = willLastToReset, eta = minutes until it runs out.
+    // Windows without p get the watch's estimate (paceOf).
+    { id: "codex", short: "CODEX", w: [{ l: "WK", u: 99, r: 49, m: 10080, p: { e: 99, last: true } }] },
+    { id: "claude", short: "CLAUDE", w: [{ l: "WK", u: 27, r: 15 * 60 + 18, m: 10080, p: { e: 91, last: true } }, { l: "FABLE", u: 6, r: 15 * 60 + 18, m: 10080 }] },
+    { id: "helmcode", short: "HELM", w: [{ l: "GLM", u: 100, r: 19 * 1440 + 14 * 60, m: 44640 }, { l: "DSV4", u: 14, r: 19 * 1440 + 14 * 60, m: 44640 }] },
+    { id: "opencodego", short: "OC GO", w: [{ l: "5H", u: 0, r: 297, m: 300 }, { l: "WK", u: 0, r: 4 * 1440 + 14 * 60, m: 10080 }, { l: "MO", u: 0, r: 14 * 1440 + 23 * 60, m: 44640 }] },
+    { id: "antigravity", short: "AGY", w: [{ l: "GEM", u: 0, r: 297, m: 300 }, { l: "C+G", u: 0, r: 297, m: 300 }] },
+    { id: "gemini", short: "GEMINI", w: [{ l: "5H", u: 42, r: 131, m: 300, p: { e: 56, last: true } }, { l: "DAY", u: 18, r: 9 * 60, m: 1440 }] },
+    { id: "copilot", short: "COPILOT", w: [{ l: "MO", u: 63, r: 20 * 1440, m: 44640 }] },
+    { id: "cursor", short: "CURSOR", w: [{ l: "MO", u: 71, r: 12 * 1440, m: 44640, p: { e: 58, last: false, eta: 3 * 1440 + 4 * 60 } }, { l: "5H", u: 35, r: 75, m: 300 }] },
   ];
 
   const SCENARIOS = {
@@ -258,9 +259,28 @@ code { font-family: var(--font-data); font-size: 13px; color: var(--ink); }
     offline: { syncAge: 134, scale: 1 },
   };
 
-  // Colour by what is LEFT of the quota: green while plenty remains, red when nearly gone.
+  // Fallback colour by what is LEFT of the quota, when its pace cannot be known.
   const level = (rem) => (rem <= 15 ? COL.crit : rem <= 40 ? COL.warn : COL.ok);
   const left = (w) => Math.max(0, 100 - w.u);
+  // Same rules as FaceModel.estimate: steady rate since the window started, skipped without a length
+  // or in the first 10 % of the window. Minutes throughout.
+  function paceOf(u, m, toReset) {
+    if (!m) return null;
+    const elapsed = m - toReset;
+    if (elapsed * 10 < m) return null;
+    const e = Math.floor(elapsed * 100 / m);
+    if (u <= 0 || u >= 100 || u * m <= elapsed * 100) return { e, last: true };
+    return { e, last: false, eta: (100 - u) * elapsed / u };
+  }
+  // Colour by pace (Quota.color): lasts → green, out with 80 % or more of the time left → amber, sooner → red.
+  function paceColour(w, now) {
+    if (left(w) === 0) return COL.crit;
+    if (w.expired || !w.pace) return level(left(w));
+    if (w.pace.last) return COL.ok;
+    if (w.pace.eta == null) return COL.warn;
+    const ratio = (w.pace.eta * MIN) / (w.resetAt - now);
+    return ratio >= 1 ? COL.ok : ratio >= 0.8 ? COL.warn : COL.crit;
+  }
   // Windows that will run out before their reset come first.
   const runsOut = (w) => (w.pace && !w.pace.last ? 0 : 1);
   // Compact durations for the centre lines: 49m, 15h, 20d.
@@ -317,7 +337,9 @@ code { font-family: var(--font-data); font-size: 13px; color: var(--ink); }
           .map((w) => {
             const resetAt = baseAt + w.r * MIN;
             const u = Math.round(w.u * sc.scale);
-            const pace = w.p ? { e: w.p.e, d: u - w.p.e, last: state.scenario === "calm" ? true : w.p.last, eta: w.p.eta } : null;
+            const pace = w.p
+              ? { e: w.p.e, last: state.scenario === "calm" ? true : w.p.last, eta: w.p.eta }
+              : paceOf(u, w.m, (resetAt - now) / MIN);
             return { ...w, u, pace, resetAt, expired: resetAt <= now };
           })
           .sort((a, b) => b.u - a.u),
@@ -361,9 +383,9 @@ code { font-family: var(--font-data); font-size: 13px; color: var(--ink); }
       if (w1 && left(w1) > 0) {
         const end = a0 + segLen * left(w1) / 100;
         const dash = w1.expired ? ` stroke-dasharray="2 4"` : "";
-        s += `<path d="${arc(R1, a0, end)}" stroke="${level(left(w1))}" stroke-width="${aod ? 3 : 13}" fill="none" opacity="${aod ? 0.7 : (w1.expired ? 0.5 : dimmed)}"${dash}/>`;
+        s += `<path d="${arc(R1, a0, end)}" stroke="${paceColour(w1, now)}" stroke-width="${aod ? 3 : 13}" fill="none" opacity="${aod ? 0.7 : (w1.expired ? 0.5 : dimmed)}"${dash}/>`;
       }
-      // Pace notch: where usage would be at a constant rate until the reset (CodexBar's expectedUsedPercent)
+      // Pace notch: where usage would be at a constant rate until the reset (CodexBar's expectedUsedPercent, or the elapsed share)
       if (w1 && w1.pace && !w1.expired) {
         const at = a0 + segLen * Math.max(0, 100 - w1.pace.e) / 100;
         const [xi, yi] = polar(aod ? 206 : 202, at);
@@ -374,12 +396,12 @@ code { font-family: var(--font-data); font-size: 13px; color: var(--ink); }
         s += `<path d="${arc(R2, a0, a1)}" stroke="${COL.track}" stroke-width="4" fill="none"/>`;
         if (left(w2) > 0) {
           const end2 = a0 + segLen * left(w2) / 100;
-          s += `<path d="${arc(R2, a0, end2)}" stroke="${level(left(w2))}" stroke-width="4" fill="none" opacity="${0.75 * dimmed}"/>`;
+          s += `<path d="${arc(R2, a0, end2)}" stroke="${paceColour(w2, now)}" stroke-width="4" fill="none" opacity="${0.75 * dimmed}"/>`;
         }
       }
       if (!aod) {
         const val = w1 ? (w1.expired ? "↺" : `${left(w1)}`) : "–";
-        const vcol = w1 && !w1.expired ? level(left(w1)) : COL.muted;
+        const vcol = w1 && !w1.expired ? paceColour(w1, now) : COL.muted;
         s += `<text font-family="${FONT_DATA}" font-size="12" font-weight="500" letter-spacing="0.6" dominant-baseline="central">` +
              `<textPath href="#lp${i}" startOffset="50%" text-anchor="middle">` +
              `<tspan fill="${COL.muted}">${esc(p.short)} </tspan><tspan fill="${vcol}">${val}</tspan>` +
@@ -433,7 +455,7 @@ code { font-family: var(--font-data); font-size: 13px; color: var(--ink); }
       critical.slice(0, 2).forEach(({ p, w }, k) => {
         const y = 322 + k * 23;
         s += `<text x="${C}" y="${y}" text-anchor="middle" font-family="${FONT_DATA}" font-size="15" fill="${COL.muted}">` +
-             `<tspan fill="${COL.ink}">${esc(p.short)}</tspan> ${esc(w.l)} <tspan fill="${level(left(w))}" font-weight="500">${left(w)}%</tspan> ${shortTail(w, now)}</text>`;
+             `<tspan fill="${COL.ink}">${esc(p.short)}</tspan> ${esc(w.l)} <tspan fill="${paceColour(w, now)}" font-weight="500">${left(w)}%</tspan> ${shortTail(w, now)}</text>`;
       });
     } else if (critical[0]) {
       const { p, w } = critical[0];
