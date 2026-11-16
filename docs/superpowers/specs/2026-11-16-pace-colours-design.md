@@ -59,3 +59,11 @@ Ratio → colour: `≥ 1` green, `0.8 – 1` amber, `< 0.8` red (5 d reset: out 
 ## Left to the builder
 
 Integer vs float arithmetic in Monkey C (avoid overflow on `eta × u`), where the `t` timestamp is read from, and the exact test layout.
+
+## Decisions made during implementation
+
+- **Exhausted estimated quota** (`u = 100`, no CodexBar pace): red, but not "runs out": the critical line shows the reset (`↻20d`) instead of `out in 0m`. Found while checking the prototype.
+- **Estimate at the payload time:** the rate is computed when the usage was measured (`t`) and the run-out time aged to now, like CodexBar's `eta`. Measuring at `now` with usage from `t` drifted towards green while the Mac was offline, the opposite of the CodexBar quotas. Raised by the final review.
+- **Payload read once per redraw:** `QuotaStore.generatedAt()` reads Storage, so it is called once, not per provider.
+- **Tests:** `garmin/scripts/test.sh` exits 1 even when every test passes (it did before this change); success is `PASSED (... failed=0, errors=0)` in its output.
+- **Accepted for now:** a CodexBar `eta` used up by ageing shows `out in 0m`; an `eta` above 2³¹ (unrealistic) is ignored and shows amber; the prototype does not age CodexBar's `eta` in its offline scenario.
