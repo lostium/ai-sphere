@@ -4,7 +4,7 @@ Watch face for the **Epix Pro (Gen 2) 51 mm** (`epix2pro51mm`, 454 × 454 AMOLED
 
 ## What it shows
 
-- **Bezel:** one arc per provider (280°, gap at the bottom), in the JSON's order. Each arc is the percentage **left** of its most used window: green above 40 %, amber 16–40 %, red 15 % or less. A thin inner line shows the second window. The **pace tick** marks where the arc would be at a constant rate (only when CodexBar provides `pace`). Name and percentage are drawn as curved text.
+- **Bezel:** one arc per provider (280°, gap at the bottom), in the JSON's order. Each arc is the percentage **left** of its most used window: its colour is the **pace**: green if it lasts to the reset, amber if it runs out with 80 % or more of the time left, red if sooner (CodexBar's pace for Codex and Claude, estimated on the watch for the rest; colour by what is left when pace cannot be known, see `docs/design.md`). A thin inner line shows the second window. The **pace tick** marks where the arc would be at a constant rate (CodexBar's value, or the elapsed share of the window). Name and percentage are drawn as curved text.
 - **Centre:** battery with icon at the top, date, large time, steps and temperature with icons.
 - **Critical lines:** at most two, only for quotas with 40 % or less left or that will run out before the reset (`CODEX WK 1% ↻49m`, `out in 3d` in red). If there are none, the Lostium logo is drawn in its place, in orange and white (`drawLogo`, built from rectangles so it stays sharp at any size).
 - **Footer:** "updated X ago", or in amber "no phone · data X ago" and "Mac not publishing · X ago" when the data gets old. Offline, the last values stay (never zeros) and a window whose reset has passed is drawn dotted.
@@ -27,9 +27,9 @@ To add a language, create `resources-<code>/strings/strings.xml` with the same i
 | `source/AISphereApp.mc` | Schedules background events and receives their results. |
 | `source/SyncService.mc` | Background process: `makeWebRequest` with the `X-Key` header. Returns the result with `Background.exit()`; does not write to `Storage`. |
 | `source/QuotaStore.mc` | Stores the last valid JSON, the time of the last success and the code of the last attempt. A failure never erases good data. |
-| `source/FaceModel.mc` | Turns the JSON into providers and quotas (`ProviderModel`, `Quota`) and picks the critical lines. |
+| `source/FaceModel.mc` | Turns the JSON into providers and quotas (`ProviderModel`, `Quota`), computes each quota's pace and colour, and picks the critical lines. |
 | `source/AISphereView.mc` | Drawing: bezel, centre, critical lines, footer and always-on mode. |
-| `source/Theme.mc` | Colours and the green/amber/red thresholds. |
+| `source/Theme.mc` | Colours and the green/amber/red thresholds (by pace, and by what is left as a fallback). |
 | `source/Geo.mc` | Bezel geometry: angles, arcs, dotted arcs and the pace tick. |
 | `resources/`, `resources-spa/` | Strings, icon and settings (`dataUrl`, `accessKey`, `refreshMinutes`). |
 | `scripts/build.sh` | Builds. Generates `build/resources/properties.xml` with the URL and key. |
