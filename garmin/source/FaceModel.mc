@@ -58,6 +58,7 @@ module FaceModel {
     function providers(now as Number) as Array<ProviderModel> {
         var out = [] as Array<ProviderModel>;
         var raw = QuotaStore.providers();
+        var generated = QuotaStore.generatedAt(); // once per redraw: each call reads the stored payload
         for (var i = 0; i < raw.size(); i++) {
             var p = raw[i];
             if (!(p instanceof Dictionary)) {
@@ -66,7 +67,6 @@ module FaceModel {
             var model = new ProviderModel();
             model.name = p["n"] instanceof String ? p["n"] as String : "?";
             model.stale = p["err"] != null;
-            var generated = QuotaStore.generatedAt();
             var windows = p["w"];
             if (windows instanceof Array) {
                 for (var j = 0; j < windows.size(); j++) {
@@ -106,35 +106,44 @@ module FaceModel {
                 q.paceExpected = pc["e"] as Number;
             }
             if (pc["eta"] instanceof Number) {
-                var age = generated != null && now > (generated as Number) ? now - (generated as Number) : 0;
-                var eta = (pc["eta"] as Number) - age;
-                q.eta = eta > 0 ? eta : 0;
+                q.eta = aged(pc["eta"] as Number, now, generated);
             }
         } else if (!q.expired) {
-            estimate(q, used, w["m"], now);
+            estimate(q, used, w["m"], now, generated);
         }
         return q;
     }
 
-    //! Pace from usage alone, assuming a steady rate since the window started. Skipped (colour by
-    //! what is left) without a length or reset, or in the first 10 % of the window.
-    function estimate(q as Quota, used as Number, minutes, now as Number) as Void {
-        if (!(minutes instanceof Number) || (minutes as Number) <= 0 || q.toReset == null) {
+    //! Seconds until it runs out, measured at `generated`, as seen from `now` (never negative;
+    //! a watch clock behind the payload does not add time).
+    function aged(eta as Number, now as Number, generated as Number or Null) as Number {
+        var age = generated != null && now > (generated as Number) ? now - (generated as Number) : 0;
+        return eta > age ? eta - age : 0;
+    }
+
+    //! Pace from usage alone, assuming a steady rate since the window started. The usage was
+    //! measured at `generated`, so the rate is computed there and the eta aged like CodexBar's.
+    //! Skipped (colour by what is left) without a length or reset, or in the first 10 % of the window.
+    function estimate(q as Quota, used as Number, minutes, now as Number, generated as Number or Null) as Void {
+        if (!(minutes instanceof Number) || (minutes as Number) <= 0 || q.reset == null) {
             return;
         }
+        var at = generated != null && (generated as Number) < now ? generated as Number : now;
         var total = (minutes as Number).toLong() * 60;
-        var elapsed = total - (q.toReset as Number).toLong();
+        var elapsed = total - ((q.reset as Number) - at).toLong();
         if (elapsed * 10 < total) {
             return;
         }
         q.paceKnown = true;
-        q.paceExpected = (elapsed * 100 / total).toNumber();
+        // The tick is where a steady rate would be now: a fact, not an estimate.
+        var elapsedNow = total - (q.toReset as Number).toLong();
+        q.paceExpected = (elapsedNow * 100 / total).toNumber();
         // Already empty: nothing left to run out (red by color()); the line shows the reset instead.
         if (used <= 0 || used >= 100 || used.toLong() * total <= elapsed * 100) {
             return;
         }
         q.lasts = false;
-        q.eta = ((100 - used).toLong() * elapsed / used).toNumber();
+        q.eta = aged(((100 - used).toLong() * elapsed / used).toNumber(), now, generated);
     }
 
     //! Up to `limit` critical quotas: the ones that run out first, then least remaining, then soonest reset.
