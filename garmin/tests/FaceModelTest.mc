@@ -192,3 +192,13 @@ function estimateExhaustedShowsResetNotRunOut(logger as Test.Logger) as Boolean 
     Test.assertEqual(q.color(), Theme.CRIT);
     return true;
 }
+
+// The estimate is made when the usage was measured (t), then aged like CodexBar's eta.
+(:test)
+function estimateUsesPayloadTimeNotNow(logger as Test.Logger) as Boolean {
+    var q = paceQuota(weekly(20, null), "2026-11-15T00:00:00Z");
+    Test.assertEqual(q.eta, 259200);
+    Test.assertEqual(q.color(), Theme.CRIT);
+    Test.assertEqual(q.paceExpected, 28);
+    return true;
+}
