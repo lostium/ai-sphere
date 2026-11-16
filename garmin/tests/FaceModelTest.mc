@@ -184,3 +184,11 @@ function estimatedRunOutGoesFirstInCriticalLines(logger as Test.Logger) as Boole
     Test.assertEqual(list[0].left, 60);
     return true;
 }
+
+(:test)
+function estimateExhaustedShowsResetNotRunOut(logger as Test.Logger) as Boolean {
+    var q = paceQuota(weekly(100, null), null);
+    Test.assert(!q.runsOut());
+    Test.assertEqual(q.color(), Theme.CRIT);
+    return true;
+}
